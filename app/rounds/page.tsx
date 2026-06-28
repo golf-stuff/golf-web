@@ -38,9 +38,9 @@ export default async function RoundsPage() {
             </tr>
           </thead>
           <tbody>
-            {rounds.map((round, index) => {
+            {rounds.map((round: { id: string; playedAt: Date; golfCourse: { name: string }; holeResults: { stroke: number }[] }, index: number) => {
               const totalScore = round.holeResults.reduce(
-                (sum, r) => sum + r.stroke,
+                (sum: number, r: { stroke: number }) => sum + r.stroke,
                 0
               );
 

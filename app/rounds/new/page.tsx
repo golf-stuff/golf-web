@@ -30,7 +30,7 @@ export default async function NewRoundPage() {
             ゴルフ場
             <select name="golfCourseId" required>
               <option value="">選択してください</option>
-              {golfCourses.map(gc => (
+              {golfCourses.map((gc: { id: string; name: string }) => (
                 <option key={gc.id} value={gc.id}>
                   {gc.name}
                 </option>

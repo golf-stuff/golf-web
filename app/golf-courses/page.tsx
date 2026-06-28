@@ -12,7 +12,7 @@ export default async function GolfCourseListPage() {
       <a href="/golf-courses/new">＋ 新規作成</a>
 
       <ul>
-        {courses.map(course => (
+        {courses.map((course: { id: string; name: string }) => (
             <li key={course.id}>
             {course.name}
             {" "}

@@ -85,20 +85,12 @@ export default async function RoundHolesPage({ params }: Props) {
   }
 
   const holeResultMap = new Map(
-    round.holeResults.map(r => [r.holeId, r])
+    round.holeResults.map(r => [r.holeId, r] as const)
   );
-  const totalScore = round.holeResults.reduce(
-    (sum, r) => sum + r.stroke,
-    0
-  );
-  const totalPutt = round.holeResults.reduce(
-    (sum, r) => sum + (r.putt ?? 0),
-    0
-  );
-  const totalPenalty = round.holeResults.reduce(
-    (sum, r) => sum + (r.penalty ?? 0),
-    0
-  );
+  const holeResultsTyped = round.holeResults;
+  const totalScore = holeResultsTyped.reduce((sum, r) => sum + r.stroke, 0);
+  const totalPutt = holeResultsTyped.reduce((sum, r) => sum + (r.putt ?? 0), 0);
+  const totalPenalty = holeResultsTyped.reduce((sum, r) => sum + (r.penalty ?? 0), 0);
 
   return (
     <main>
@@ -123,28 +115,16 @@ export default async function RoundHolesPage({ params }: Props) {
       <form action={saveRoundHoles}>
         <input type="hidden" name="roundId" value={round.id} />
 
-        {round.golfCourse.layouts.map(layout => {
+        {round.golfCourse.layouts.map((layout: { id: string; name: string; holes: { id: string; holeNumber: number; par: number; yardRegular: number }[] }) => {
           // この layout に属する holeId を集める
           const layoutHoleIds = new Set(
             layout.holes.map(h => h.id)
           );
           // round.holeResults から該当分だけ抽出
-          const layoutResults = round.holeResults.filter(r =>
-            layoutHoleIds.has(r.holeId)
-          );
-          // 合計計算
-          const layoutScore = layoutResults.reduce(
-            (sum, r) => sum + r.stroke,
-            0
-          );
-          const layoutPutt = layoutResults.reduce(
-            (sum, r) => sum + (r.putt ?? 0),
-            0
-          );
-          const layoutPenalty = layoutResults.reduce(
-            (sum, r) => sum + (r.penalty ?? 0),
-            0
-          );
+          const layoutResults = holeResultsTyped.filter(r => layoutHoleIds.has(r.holeId));
+          const layoutScore = layoutResults.reduce((sum, r) => sum + r.stroke, 0);
+          const layoutPutt = layoutResults.reduce((sum, r) => sum + (r.putt ?? 0), 0);
+          const layoutPenalty = layoutResults.reduce((sum, r) => sum + (r.penalty ?? 0), 0);
 
           return (
             <section key={layout.id} style={{ marginTop: "1rem" }}>
@@ -208,9 +188,8 @@ export default async function RoundHolesPage({ params }: Props) {
                         ? calcHoleMetrics({
                             stroke: result.stroke,
                             par: hole.par,
-                            putt: result.putt,
-                            shortgame: result.shortgame,
-                            approach: result.approach,
+                            putt: result.putt ?? undefined,
+                            shortgame: result.shortGame ?? undefined,
                             penalty: result.penalty,
                           })
                         : null;
@@ -254,7 +233,7 @@ export default async function RoundHolesPage({ params }: Props) {
                               name={`hole_${hole.id}_shortgame`}
                               min={1}
                               max={99}
-                              defaultValue={result?.shortgame ?? ""}
+                              defaultValue={result?.shortGame ?? ""}
                             />
                           </td>
                           <td>{metrics?.approach ?? "-"}</td>

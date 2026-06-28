@@ -178,7 +178,7 @@ export async function saveHoles(formData: FormData) {
     }
   }
 
-  await prisma.$transaction(async tx => {
+  await prisma.$transaction(async (tx) => {
     await tx.mstHole.deleteMany({
       where: { courseLayoutId: layoutId },
     });

@@ -30,7 +30,7 @@ export default async function HoleDefinitionPage({ params }: Props) {
   });
 
   const initialHoles = existingHoles.length
-    ? existingHoles.map(h => ({
+    ? existingHoles.map((h: { holeNumber: number; par: number; yardRegular: number }) => ({
         holeNumber: h.holeNumber,
         par: h.par,
         yardRegular: h.yardRegular,

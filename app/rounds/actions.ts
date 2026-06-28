@@ -101,7 +101,7 @@ export async function saveRoundHoles(formData: FormData) {
     holeMap.set(holeId, current);
   }
 
-  await prisma.$transaction(async tx => {
+  await prisma.$transaction(async (tx) => {
     // MVPなので一旦全削除
     await tx.trnRoundHoleResult.deleteMany({
       where: { roundId },
@@ -121,9 +121,10 @@ export async function saveRoundHoles(formData: FormData) {
           putt: values.putt ?? 0,
           penalty: values.penalty ?? 0,
 
-          shortgame: values.shortgame ?? null,
+          shortGame: values.shortgame ?? null,
           secondShotOk: values.secondShotOk ?? null,
-          fairwayKeep: values.fairwayKeep ?? null,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          fairwayKeep: (values.fairwayKeep ?? null) as any,
           greenBunker: values.greenBunker ?? null,
           fairwayBunker: values.fairwayBunker ?? null,
         },

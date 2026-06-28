@@ -44,7 +44,7 @@ export default async function CourseLayoutPage({ params }: Props) {
       <section>
         <h2>登録済みコース</h2>
         <ul>
-          {golfCourse.layouts.map(layout => {
+          {golfCourse.layouts.map((layout: { id: string; name: string; holeCount: number; holes: { id: string; holeNumber: number; par: number; yardRegular: number }[] }) => {
             const hasHoles = layout.holes.length > 0;
 
             return (

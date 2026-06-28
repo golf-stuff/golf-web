@@ -1,19 +1,15 @@
-// app/layout.tsx
-// import './globals.css'; // 存在しないなら削除してOK
+import type { Metadata } from 'next'
+import './globals.css'
 
-export const metadata = {
-  title: 'Golf Score App',
-  description: 'Golf scoring application',
-};
+export const metadata: Metadata = {
+  title: 'Golf Stuff',
+  description: 'ゴルフスコア管理・分析',
+}
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body className="bg-gray-50 text-gray-900">{children}</body>
     </html>
-  );
+  )
 }
