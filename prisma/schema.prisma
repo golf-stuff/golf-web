@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum fairway_keep_result {
+  ok
+  left
+  right
+  over
+  short
+}
+
+
+model MstUser {
+  id        String   @id @default(uuid())
+  email     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  golfCourses MstGolfCourse[]
+  rounds      TrnRound[]
+
+  @@map("mst_users")
+}
+
+model MstGolfCourse {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    MstUser          @relation(fields: [userId], references: [id])
+  layouts MstCourseLayout[]
+  rounds  TrnRound[]
+
+  @@unique([userId, name])
+  @@map("mst_golf_courses")
+}
+
+
+model MstCourseLayout {
+  id            String   @id @default(uuid())
+  golfCourseId  String   @map("golf_course_id")
+  name          String
+  holeCount     Int      @map("hole_count")
+  displayOrder  Int      @default(1) @map("display_order")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  golfCourse MstGolfCourse @relation(fields: [golfCourseId], references: [id])
+  holes      MstHole[]
+
+  @@unique([golfCourseId, name])
+  @@map("mst_course_layouts")
+}
+
+
+model MstHole {
+  id              String   @id @default(uuid())
+  courseLayoutId  String   @map("course_layout_id")
+  holeNumber      Int      @map("hole_number")
+  par             Int
+  yardRegular     Int      @map("yard_regular")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  courseLayout MstCourseLayout @relation(fields: [courseLayoutId], references: [id])
+  results      TrnRoundHoleResult[]
+
+  @@unique([courseLayoutId, holeNumber])
+  @@map("mst_holes")
+}
+
+model TrnRound {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  golfCourseId String   @map("golf_course_id")
+  playedAt     DateTime @map("played_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user        MstUser       @relation(fields: [userId], references: [id])
+  golfCourse MstGolfCourse @relation(fields: [golfCourseId], references: [id])
+  holeResults TrnRoundHoleResult[]
+
+  @@map("trn_rounds")
+}
+
+
+model TrnRoundHoleResult {
+  id            String   @id @default(uuid())
+  roundId       String   @map("round_id")
+  holeId        String   @map("hole_id")
+
+  stroke        Int
+  putt          Int?
+  penalty       Int      @default(0)
+  shortGame     Int?     @map("short_game")
+  fairwayKeep   fairway_keep_result? @map("fairway_keep")
+  secondShotOk  Boolean? @map("second_shot_ok")
+  greenBunker    Int?          @map("green_bunker")
+  fairwayBunker  Int?          @map("fairway_bunker")  
+
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  round TrnRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  hole  MstHole  @relation(fields: [holeId], references: [id])
+
+  @@unique([roundId, holeId])
+  @@map("trn_round_hole_results")
+}
