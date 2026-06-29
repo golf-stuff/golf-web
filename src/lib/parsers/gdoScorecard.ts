@@ -8,6 +8,16 @@ export type ParseResult =
   | { ok: true; holes: ParsedHole[] }
   | { ok: false; message: string };
 
+export type ParsedScore = {
+  holeNumber: number;
+  stroke: number;
+  putt: number | null;
+};
+
+export type ScoreParseResult =
+  | { ok: true; scores: ParsedScore[] }
+  | { ok: false; message: string };
+
 function toTokens(line: string): string[] {
   return line
     .trim()
@@ -89,4 +99,50 @@ export function parseGdoScorecardText(
   }
 
   return { ok: true, holes };
+}
+
+/**
+ * GDOスコアカードのコピーテキストからスコアをパースする
+ * - スコア行: "スコア" / "score" / "打数" で始まる行
+ * - パット行: "パット" / "putt" で始まる行（任意）
+ * - Hole行から hole番号を取得して対応付ける
+ */
+export function parseGdoScoreText(
+  rawText: string,
+  holeCount: number
+): ScoreParseResult {
+  if (!rawText.trim()) {
+    return { ok: false, message: "貼り付けテキストが空です" };
+  }
+
+  const lines = rawText
+    .split(/\r?\n/)
+    .map(toTokens)
+    .filter(tokens => tokens.length > 0);
+
+  const holeLine = lines.find(l => /^hole$/i.test(l[0]));
+  const scoreLine = lines.find(l => /^(スコア|score|打数)$/i.test(l[0]));
+  const puttLine = lines.find(l => /^(パット|putt|putts)$/i.test(l[0]));
+
+  if (!holeLine) return { ok: false, message: "Hole行が見つかりません" };
+  if (!scoreLine) return { ok: false, message: "スコア行が見つかりません（「スコア」「Score」「打数」のいずれかで始まる行が必要です）" };
+
+  const holeNumbers = extractNumbers(holeLine).slice(0, holeCount);
+  const strokes = extractNumbers(scoreLine).slice(0, holeCount);
+  const putts = puttLine ? extractNumbers(puttLine).slice(0, holeCount) : null;
+
+  if (holeNumbers.length !== holeCount) {
+    return { ok: false, message: `Hole番号の数が一致しません（期待: ${holeCount}、実際: ${holeNumbers.length}）` };
+  }
+  if (strokes.length !== holeCount) {
+    return { ok: false, message: `スコアの数が一致しません（期待: ${holeCount}、実際: ${strokes.length}）` };
+  }
+
+  const scores: ParsedScore[] = holeNumbers.map((h, i) => ({
+    holeNumber: h,
+    stroke: strokes[i],
+    putt: putts ? (putts[i] ?? null) : null,
+  }));
+
+  return { ok: true, scores };
 }

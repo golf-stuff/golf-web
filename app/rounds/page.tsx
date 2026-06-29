@@ -64,9 +64,12 @@ export default async function RoundsPage() {
         </table>
       )}
 
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
         <Link href="/rounds/new">
           ＋ 新しいラウンドを追加
+        </Link>
+        <Link href="/rounds/import">
+          📋 GDOからインポート
         </Link>
       </div>
     </main>
