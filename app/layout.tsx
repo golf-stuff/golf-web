@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import HeaderNav from './_components/HeaderNav'
 
 export const metadata: Metadata = {
   title: 'Golf Stuff',
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja">
-      <body className="bg-gray-50 text-gray-900">{children}</body>
+      <body className="bg-gray-50 text-gray-900">
+        <HeaderNav />
+        {children}
+      </body>
     </html>
   )
 }
