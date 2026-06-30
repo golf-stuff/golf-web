@@ -16,7 +16,7 @@ import { redirect } from "next/navigation";
 
   const round = await prisma.trnRound.create({
     data: {
-      userId: "user-dev",
+      userId: "dummy-user",
       golfCourseId,
       playedAt: new Date(playedAt),
     },

@@ -121,11 +121,12 @@ export function parseGdoScoreText(
     .filter(tokens => tokens.length > 0);
 
   const holeLine = lines.find(l => /^hole$/i.test(l[0]));
-  const scoreLine = lines.find(l => /^(スコア|score|打数)$/i.test(l[0]));
+  // GDOでは "自分" がスコア行のラベル
+  const scoreLine = lines.find(l => /^(スコア|score|打数|自分)$/i.test(l[0]));
   const puttLine = lines.find(l => /^(パット|putt|putts)$/i.test(l[0]));
 
   if (!holeLine) return { ok: false, message: "Hole行が見つかりません" };
-  if (!scoreLine) return { ok: false, message: "スコア行が見つかりません（「スコア」「Score」「打数」のいずれかで始まる行が必要です）" };
+  if (!scoreLine) return { ok: false, message: "スコア行が見つかりません（「自分」「スコア」「Score」のいずれかで始まる行が必要です）" };
 
   const holeNumbers = extractNumbers(holeLine).slice(0, holeCount);
   const strokes = extractNumbers(scoreLine).slice(0, holeCount);

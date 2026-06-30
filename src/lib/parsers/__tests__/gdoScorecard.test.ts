@@ -9,6 +9,17 @@ Yard\t350\t150\t480\t320\t400\t170\t510\t380\t360\t3120
 パット\t2\t1\t2\t2\t2\t1\t3\t2\t2\t17
 `.trim()
 
+// 実際のGDOコピペ（前半9H）
+const SAMPLE_GDO_REAL = `筑波 【White(L)ティー】
+Hole\t1\t2\t3\t4\t5\t6\t7\t8\t9\t前半H\tTotal
+Par\t5\t4\t4\t3\t4\t4\t3\t5\t4\t36\t72
+Yard\t541y\t369y\t280y\t147y\t386y\t366y\t166y\t436y\t333y\t3,024y\t6,134y
+自分\t7\t4\t5\t3\t6\t5\t4\t5\t5\t44\t92
+Putt\t2\t2\t2\t1\t2\t1\t3\t2\t2\t　17\t36
+ティショットクラブ\t1W\t5W\t5W\t8i\t1W\t1W\t8i\t1W\t1W\t\t
+フェアウェイキープ\t\t\t\t\t\t\t\t\t\t42.9%\t42.9%
+OB\t1\t\t\t\t\t\t\t\t\t1回\t3回`.trim()
+
 const SAMPLE_9H_EN = `
 Hole\t1\t2\t3\t4\t5\t6\t7\t8\t9
 Par\t4\t3\t5\t4\t4\t3\t5\t4\t4
@@ -17,6 +28,19 @@ Putt\t2\t1\t2\t2\t2\t1\t3\t2\t2
 `.trim()
 
 describe('parseGdoScoreText', () => {
+  it('実際のGDOフォーマット（自分行・全角スペース小計・合計列あり）をパースできる', () => {
+    const result = parseGdoScoreText(SAMPLE_GDO_REAL, 9)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.scores).toHaveLength(9)
+    expect(result.scores[0]).toEqual({ holeNumber: 1, stroke: 7, putt: 2 })
+    expect(result.scores[1]).toEqual({ holeNumber: 2, stroke: 4, putt: 2 })
+    expect(result.scores[8]).toEqual({ holeNumber: 9, stroke: 5, putt: 2 })
+    // 小計・合計は含まれない
+    const total = result.scores.reduce((s, r) => s + r.stroke, 0)
+    expect(total).toBe(44)
+  })
+
   it('日本語ラベルのスコア行をパースできる', () => {
     const result = parseGdoScoreText(SAMPLE_9H, 9)
     expect(result.ok).toBe(true)

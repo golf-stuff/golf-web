@@ -27,6 +27,7 @@ export default function ImportForm({ golfCourses }: Props) {
   const [rawText, setRawText] = useState('')
   const [preview, setPreview] = useState<ParsedScore[] | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const selectedCourse = golfCourses.find(c => c.id === courseId)
@@ -51,13 +52,18 @@ export default function ImportForm({ golfCourses }: Props) {
 
   function handleImport() {
     if (!preview || !courseId || !layoutId || !playedAt) return
+    setSaveError(null)
     startTransition(async () => {
-      await importGdoScore({
-        golfCourseId: courseId,
-        layoutId,
-        playedAt,
-        scores: preview,
-      })
+      try {
+        await importGdoScore({
+          golfCourseId: courseId,
+          layoutId,
+          playedAt,
+          scores: preview,
+        })
+      } catch (e) {
+        setSaveError(e instanceof Error ? e.message : '保存に失敗しました')
+      }
     })
   }
 
@@ -175,6 +181,10 @@ export default function ImportForm({ golfCourses }: Props) {
               ))}
             </tbody>
           </table>
+
+          {saveError && (
+            <p className="text-xs text-red-500">{saveError}</p>
+          )}
 
           <button
             onClick={handleImport}
