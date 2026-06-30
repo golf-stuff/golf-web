@@ -62,6 +62,8 @@ export default function ImportForm({ golfCourses }: Props) {
           scores: preview,
         })
       } catch (e) {
+        // Next.js の redirect() は NEXT_REDIRECT エラーをスローするため再スローする
+        if (e instanceof Error && e.message === 'NEXT_REDIRECT') throw e
         setSaveError(e instanceof Error ? e.message : '保存に失敗しました')
       }
     })

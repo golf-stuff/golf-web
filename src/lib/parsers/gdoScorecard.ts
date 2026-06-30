@@ -103,8 +103,8 @@ export function parseGdoScorecardText(
 
 /**
  * GDOスコアカードのコピーテキストからスコアをパースする
- * - スコア行: "スコア" / "score" / "打数" で始まる行
- * - パット行: "パット" / "putt" で始まる行（任意）
+ * - スコア行: "自分" / "スコア" / "Score" で始まる行
+ * - パット行: "Putt" / "パット" で始まる行（任意）
  * - Hole行から hole番号を取得して対応付ける
  */
 export function parseGdoScoreText(

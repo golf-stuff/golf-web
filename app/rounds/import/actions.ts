@@ -47,16 +47,20 @@ export async function importGdoScore(input: ImportScoreInput) {
     );
   }
 
-  const round = await prisma.trnRound.create({
-    data: {
-      userId: "dummy-user",
-      golfCourseId,
-      playedAt: new Date(playedAt),
-    },
-  });
+  const round = await prisma.$transaction(async (tx) => {
+    const created = await tx.trnRound.create({
+      data: {
+        userId: "dummy-user",
+        golfCourseId,
+        playedAt: new Date(playedAt),
+      },
+    });
 
-  await prisma.trnRoundHoleResult.createMany({
-    data: holeData.map(h => ({ ...h, roundId: round.id })),
+    await tx.trnRoundHoleResult.createMany({
+      data: holeData.map(h => ({ ...h, roundId: created.id })),
+    });
+
+    return created;
   });
 
   redirect(`/rounds/${round.id}/holes`);
