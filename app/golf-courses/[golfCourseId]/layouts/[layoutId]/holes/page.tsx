@@ -42,20 +42,13 @@ export default async function HoleDefinitionPage({ params }: Props) {
       }));
 
   return (
-    <main>
+    <main className="p-6 max-w-2xl mx-auto flex flex-col gap-4">
       <nav>
-        <Link href={`/golf-courses/${golfCourseId}/layouts`}>
-          ← コース管理へ戻る
-        </Link>
-        {" / "}
-        <Link href="/golf-courses">
-          ゴルフ場一覧
+        <Link href={`/golf-courses/${golfCourseId}/layouts`} className="nav-back">
+          ← {golfCourse.name} コース管理
         </Link>
       </nav>
-
-      <h1>
-        {golfCourse.name} / {layout.name}（Hole定義）
-      </h1>
+      <h1 className="page-heading">{layout.name} — ホール設定</h1>
 
       <HoleDefinitionClient
         golfCourseId={golfCourseId}
