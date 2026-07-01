@@ -94,7 +94,7 @@ export default function HoleDefinitionClient({
         <form action={saveHoles}>
           <input type="hidden" name="golfCourseId" value={golfCourseId} />
           <input type="hidden" name="layoutId" value={layoutId} />
-          <input type="hidden" name="holes" value={holesJson} />
+          <input type="hidden" name="holesJson" value={holesJson} />
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
