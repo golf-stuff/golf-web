@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **実装完了後の注記:** Task 3のPR #2実地検証により、本プラン内のSKILL.md雛形（環境準備のポーリング処理、`gh pr edit`の呼び出し方など）は最終版から更新されています。最新の正は `golf-web/.claude/skills/verify-pr-checklist/SKILL.md` を参照してください。
+
 **Goal:** GitHub PRの本文にある「確認ポイント」チェックリストを、Playwright MCPでブラウザ操作しながらAIとユーザーが対話的に消化していく汎用skill（`verify-pr-checklist`）と、golf-webの実態に即した開発ガイド（`CLAUDE.md`）を作成する。
 
 **Architecture:** `golf-web/.claude/skills/verify-pr-checklist/SKILL.md` に技法（Technique）skillとして手順を記述する。skillはPR本文パース→環境準備→定型/主観のハイブリッド検証→結果集計→PR本文更新、の一連の流れを持つ。`golf-web/CLAUDE.md` は実プロジェクト構成に基づく開発ガイドで、このskillへの導線を含む。
