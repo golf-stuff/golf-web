@@ -33,14 +33,23 @@ gh pr view <PR番号> --json body --jq .body
 以下を順に確認し、未起動なら起動する。
 
 ```bash
-# devサーバーが応答するか確認（例: Next.jsなら3000番）
-curl -sf http://localhost:3000 > /dev/null || (npm run dev &)
+# devサーバーが未応答ならバックグラウンドで起動（例: Next.jsなら3000番）
+curl -sf http://localhost:3000 > /dev/null || nohup npm run dev > /tmp/dev-server.log 2>&1 &
 
-# ローカルSupabaseの状態確認
+# ローカルSupabaseの状態確認（Stopped表示のサービスがimgproxy/pooler等のみなら実害なし）
 supabase status || supabase start
 ```
 
-起動待ちはポーリングで確認し、固定sleepに頼らない。
+起動待ちはポーリングで確認し、固定sleepに頼らない。以下のように短い間隔でリトライし、成功したら即座に抜ける。
+
+```bash
+for i in $(seq 1 30); do
+  curl -sf http://localhost:3000 > /dev/null && echo "UP after ${i}s" && break
+  sleep 1
+done
+```
+
+30秒待っても応答がない場合は、devサーバーのログ（`npm run dev` の出力）を確認し、無理に進めず状況を報告する。
 
 ### 3. 確認ポイントの分類
 
@@ -59,10 +68,16 @@ supabase status || supabase start
 3. DOM状態（要素の存在・テキスト）とコンソールエラーの有無を確認する
 4. スクリーンショットを撮り、「◯◯の結果、△△を確認しました。問題なければ次へ進みます」とユーザーに一言確認する
 
+検証対象の機能がマスタデータ（ゴルフ場・レイアウトなど）に依存する場合、DBに該当データが無ければ検証を諦めずに、`/golf-courses/new` 等の画面から最小限のテストデータを事前に作成してから検証する。
+
+入力データが必要な操作（例: GDOスコアカードのテキスト貼り付け）は、対象コンポーネントのplaceholder表記やパーサー実装（例: `src/lib/parsers/`）を確認し、その形式に沿ったサンプルデータを用意する。
+
 **主観・見た目系の例:**
 1. 対象ページ群にPlaywright MCPで遷移し、それぞれスクリーンショットを撮る
 2. 撮影結果をユーザーに提示し、「これらのページのデザインを見て問題ないか判断してください」と依頼する
 3. ユーザーの回答（OK/NG）を記録する
+
+人間ユーザーが同席していないバッチ実行・実地検証タスクなど、リアルタイムに確認を求められない場合は、AI自身がスクリーンショットを比較した所見（配色・角丸・余白・フォントウェイト等の一貫性）を「実際の人間ユーザーがいれば確認してもらう箇所」と明記した上で代わりに記録してよい。ただし通常のインタラクティブな対話セッションでは、必ずユーザー本人の判断を仰ぐことを優先する。
 
 ### 5. NG時の扱い
 
@@ -72,8 +87,11 @@ supabase status || supabase start
 
 全項目の検証が終わったら、OKだった項目のみPR本文の `- [ ]` を `- [x]` に変更する。
 
+`gh pr edit --body` への直接文字列渡しは改行やMarkdown箇条書きを扱いにくく、崩れる原因になる。更新後の本文は一時ファイルに書き出し、`--body-file` で渡す。
+
 ```bash
-gh pr edit <PR番号> --body "<更新後の本文>"
+# 更新後の本文を一時ファイルに書き出してから反映する
+gh pr edit <PR番号> --body-file <一時ファイルパス>
 ```
 
 NG項目のチェックは付けない。
@@ -102,3 +120,5 @@ NG項目のチェックは付けない。
 - 確認ポイントの分類を省略し、主観的な項目までAIだけで「OK」と判定してしまう → 必ずユーザーに判断してもらう
 - 環境未起動のままPlaywrightを実行してタイムアウトする → 手順2の環境準備を必ず先に行う
 - NG項目が出た時点でフロー全体を止めてしまう → 残りの項目の検証は続行する
+- `webapp-testing` skillが前提とするPython Playwright（`python3 -m playwright`）が実行環境にインストールされておらず失敗する → `uv run --with playwright python3 -m playwright install chromium` のように `uv`（インストール済みなら）経由で一時的に依存を解決してから実行する。それも使えない場合はPlaywright MCPツール（ブラウザ拡張経由）で代替する
+- `gh pr edit --body "<文字列>"` で本文の改行やMarkdown箇条書きが崩れる → 手順6の通り必ず `--body-file` で一時ファイルを渡す
