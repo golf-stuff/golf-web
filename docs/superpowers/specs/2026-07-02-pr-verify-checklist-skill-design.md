@@ -1,5 +1,7 @@
 # PR確認ポイント検証skill 設計
 
+> **Note:** 本ドキュメント中のSKILL.md雛形は初版設計時点のものです。実装後、PR #2への実地検証（[実装プラン](../plans/2026-07-02-pr-verify-checklist-skill.md) Task 3）を経て手順が調整されています。最新の正は `golf-web/.claude/skills/verify-pr-checklist/SKILL.md` を参照してください。
+
 ## 背景・目的
 
 PR（例: [#2](https://github.com/golf-stuff/golf-stuff/pull/2)）には「確認ポイント」チェックリストが本文に含まれるが、これまでは人手で1つずつ動作確認していた。この作業をAI駆動で進め、Playwrightでブラウザ操作を行いながらユーザーと対話的に確認を消化できるようにする。
