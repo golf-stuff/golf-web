@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 
 export default async function RoundsPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
+
   const rounds = await prisma.trnRound.findMany({
+    where: { userId: currentUser.id },
     orderBy: { playedAt: "desc" },
     include: {
       golfCourse: true,

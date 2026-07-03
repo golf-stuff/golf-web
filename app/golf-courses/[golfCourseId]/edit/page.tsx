@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 import { updateGolfCourse } from "../../actions";
 
 type Props = {
@@ -9,6 +11,8 @@ type Props = {
 
 export default async function EditGolfCoursePage({ params }: Props) {
   const { golfCourseId } = await params; // Next.js 16 仕様
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
 
   if (!golfCourseId) {
     return <div>不正なIDです</div>;
@@ -18,7 +22,7 @@ export default async function EditGolfCoursePage({ params }: Props) {
     where: { id: golfCourseId },
   });
 
-  if (!course) {
+  if (!course || course.userId !== currentUser.id) {
     return <div>ゴルフ場が見つかりません</div>;
   }
 

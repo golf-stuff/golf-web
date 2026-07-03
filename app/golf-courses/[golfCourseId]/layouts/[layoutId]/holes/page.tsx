@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 import HoleDefinitionClient from "./ui";
 
 type Props = {
@@ -11,6 +13,8 @@ type Props = {
 
 export default async function HoleDefinitionPage({ params }: Props) {
   const { golfCourseId, layoutId } = await params;
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
 
   const golfCourse = await prisma.mstGolfCourse.findUnique({
     where: { id: golfCourseId },
@@ -20,7 +24,7 @@ export default async function HoleDefinitionPage({ params }: Props) {
     where: { id: layoutId },
   });
 
-  if (!golfCourse || !layout) {
+  if (!golfCourse || !layout || golfCourse.userId !== currentUser.id) {
     return <div>ゴルフ場またはコースが見つかりません</div>;
   }
 

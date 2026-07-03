@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 import { getHoleScoreCategory } from "@/src/lib/metrics/holeScoreCategory";
 import { scoreCategoryToLabel } from "@/src/lib/ui/scoreLabel";
 import { calcHoleMetrics } from "@/src/lib/metrics/holeMetrics";
@@ -60,6 +62,8 @@ function getFwkeepOptions(par: number): fairway_keep_result[] {
 
 export default async function RoundHolesPage({ params }: Props) {
   const { roundId } = await params;
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
 
   const round = await prisma.trnRound.findUnique({
     where: { id: roundId },
@@ -80,7 +84,7 @@ export default async function RoundHolesPage({ params }: Props) {
     },
   });
 
-  if (!round) {
+  if (!round || round.userId !== currentUser.id) {
     return <div>ラウンドが見つかりません</div>;
   }
 

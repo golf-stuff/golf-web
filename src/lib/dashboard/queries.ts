@@ -8,8 +8,9 @@ export type RoundSummary = {
   layoutStrokes: { layoutId: string; layoutName: string; strokes: number }[]
 }
 
-export async function fetchRoundSummaries(): Promise<RoundSummary[]> {
+export async function fetchRoundSummaries(userId: string): Promise<RoundSummary[]> {
   const rounds = await prisma.trnRound.findMany({
+    where: { userId },
     orderBy: { playedAt: 'desc' },
     include: {
       golfCourse: true,

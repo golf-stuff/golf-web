@@ -1,6 +1,8 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { fetchRoundSummaries } from '@/src/lib/dashboard/queries'
 import { computeDashboardData } from '@/src/lib/dashboard/metrics'
+import { getCurrentUser } from '@/src/lib/auth/getCurrentUser'
 import ScoreGraph from './_components/ScoreGraph'
 
 function fmtDate(d: Date): string {
@@ -8,7 +10,10 @@ function fmtDate(d: Date): string {
 }
 
 export default async function DashboardPage() {
-  const rounds = await fetchRoundSummaries()
+  const currentUser = await getCurrentUser()
+  if (!currentUser) redirect('/login')
+
+  const rounds = await fetchRoundSummaries(currentUser.id)
   const data = computeDashboardData(rounds)
 
   return (
