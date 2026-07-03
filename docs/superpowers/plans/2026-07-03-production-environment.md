@@ -1440,6 +1440,89 @@ git commit -m "feat: GitHub ActionsによるPrismaマイグレーション+Verce
 
 ---
 
+## Task 11: golf-web/CLAUDE.mdを新しい環境構成に合わせて更新する
+
+**Files:**
+- Modify: `golf-web/CLAUDE.md`
+
+**Interfaces:**
+- Consumes: Task 1〜10で確定した実際の変更内容（`docker-compose.yml`削除、`supabase/config.toml`追加、`middleware.ts`によるログイン必須化、`src/lib/supabase/`・`src/lib/auth/`の新設、`.github/workflows/deploy.yml`によるCI/CD）
+
+- [ ] **Step 1: `/claude-md-management` skillを呼び出す**
+
+このタスクは`/claude-md-management` skillを使って進める。呼び出し時に以下をコンテキストとして渡す:
+
+- 対象ファイル: `golf-web/CLAUDE.md`
+- Task 1〜10で実施した変更点：
+  - `docker-compose.yml`（素のPostgres）を廃止し、`supabase start`によるローカルSupabase CLIエミュレータに一本化した
+  - `prisma/schema.prisma`に`directUrl`を追加した（`DATABASE_URL`=Pooler接続、`DIRECT_URL`=Direct接続の使い分けが発生した）
+  - `middleware.ts`により全ページがログイン必須になった（`/login`, `/auth/callback`を除く）
+  - `src/lib/supabase/`（Supabaseクライアント）、`src/lib/auth/`（`getCurrentUser()`）を新設した
+  - 本番は`.github/workflows/deploy.yml`が`main`へのpushで自動的に`prisma migrate deploy`→Vercel Deploy Hookを実行する構成になった
+  - 開発時にログインが必要になったため、動作確認手順（Supabase Studioでのテストユーザー作成方法）をローカル開発フローに追記する必要がある
+
+- [ ] **Step 2: skillの出力を確認し、`golf-web/CLAUDE.md`に反映する**
+
+既存セクション（プロジェクト概要、ディレクトリ構成、開発コマンド、PRレビューの進め方）は残しつつ、以下を反映する:
+
+- 「ローカルSupabaseの起動」セクションを、Task 1 Step 8で追記した内容（`docker-compose.yml`廃止・`DIRECT_URL`追加）を踏まえて更新する
+- 新規セクション「認証」を追加し、`middleware.ts`によるログイン必須化、ローカルでのテストユーザー作成方法（Supabase Studio → Authentication → Users）、`getCurrentUser()`の使い方を記載する
+- 新規セクション「デプロイ」を追加し、`.github/workflows/deploy.yml`によるマイグレーション・デプロイの自動化フローを記載する
+- ディレクトリ構成図に`src/lib/supabase/`, `src/lib/auth/`, `middleware.ts`, `app/login/`, `app/auth/callback/`, `.github/workflows/`を追加する
+
+- [ ] **Step 3: 更新後の内容をレビューする**
+
+以下を満たしているか確認する:
+- Task 1〜10で新設・削除したファイル/ディレクトリが全てディレクトリ構成図に反映されている
+- 「ローカルSupabaseの起動」に`docker-compose.yml`への言及が残っていない（廃止済みのため）
+- ログインが必要になったことで、他のセクション（PRレビューの進め方等）の前提が崩れていないか確認する（崩れている場合はTask 12で`verify-pr-checklist`側を修正するため、ここでは`golf-web/CLAUDE.md`側の記述のみ整合させる）
+
+- [ ] **Step 4: コミット**
+
+```bash
+cd golf-web
+git add CLAUDE.md
+git commit -m "docs: CLAUDE.mdを本番環境構築後の構成に合わせて更新"
+```
+
+---
+
+## Task 12: verify-pr-checklist SKILL.mdをログイン必須環境に対応させる
+
+**Files:**
+- Modify: `golf-web/.claude/skills/verify-pr-checklist/SKILL.md`
+
+**Interfaces:**
+- Consumes: Task 4のmiddleware仕様（`/login`, `/auth/callback`以外は未ログイン時にリダイレクトされる）、Task 5のログイン手段（メール+パスワード、テストユーザーはSupabase Studioから作成）
+
+**背景**：現在の`SKILL.md`手順2「環境準備」は、devサーバーとローカルSupabaseの起動確認のみを行っている。Task 4でmiddlewareを追加した結果、Playwrightでどのページに遷移してもログイン前提となるため、既存の検証フローが自動化できたつもりで全項目リダイレクト待ちになり失敗する。ログイン手順を検証フローに組み込む必要がある。
+
+- [ ] **Step 1: `/skill-creator` skillを呼び出す**
+
+このタスクは`/skill-creator`（既存skillの編集モード）を使って進める。呼び出し時に以下をコンテキストとして渡す:
+
+- 編集対象: `golf-web/.claude/skills/verify-pr-checklist/SKILL.md`
+- 追加要件: 手順2「環境準備」の直後に、Playwright操作を始める前に固定のテストユーザー（例: `qa@example.com` / 事前に決めたパスワード）でログインするステップを追加する。テストユーザーが未作成の場合は、Supabase Studio（`http://127.0.0.1:54323`）のAuthentication → UsersからCLIまたはダッシュボード経由で作成する手順を明記する
+- 追加要件: 「Common Mistakes」セクションに、「middlewareによりログインしていないと全ページが`/login`にリダイレクトされる。検証前に必ずログイン済みセッションを確立すること」という項目を追加する
+- 制約: 既存の手順1（確認ポイント取得）・手順3〜7（分類・検証・報告）の構成は変更しない。手順2の直後にログインステップを追加する形で最小限の変更に留める
+
+- [ ] **Step 2: skillの出力をレビューする**
+
+以下を満たしているか確認する:
+- 既存のfrontmatter（`name`, `description`）が変更されていない
+- 手順2にログインステップが追加され、それ以降の手順番号がずれていない、またはずれた場合は全体が一貫している
+- `Common Mistakes`セクションにログイン関連の注意点が追加されている
+
+- [ ] **Step 3: コミット**
+
+```bash
+cd golf-web
+git add .claude/skills/verify-pr-checklist/SKILL.md
+git commit -m "docs: verify-pr-checklist skillをログイン必須環境に対応させる"
+```
+
+---
+
 ## 完了確認
 
 全タスク完了後に以下を確認する:
