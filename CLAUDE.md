@@ -48,7 +48,8 @@ supabase status   # 起動状況を確認
 supabase start    # 未起動なら起動（初回は時間がかかる）
 ```
 
-`.env.local` に `NEXT_PUBLIC_SUPABASE_URL` / `DATABASE_URL` 等のローカル接続情報が設定されています。
+`.env.local` に `NEXT_PUBLIC_SUPABASE_URL` / `DATABASE_URL` / `DIRECT_URL` 等のローカル接続情報が設定されています。
+`docker-compose.yml`（素のPostgres）は廃止し、Supabase CLIのローカルエミュレータに統一しています。
 
 ## PRレビューの進め方
 
