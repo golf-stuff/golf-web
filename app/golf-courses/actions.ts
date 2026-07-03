@@ -2,6 +2,7 @@
 
 import { prisma } from "@/src/lib/db/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 
 /**
  * ゴルフ場を新規作成
@@ -13,9 +14,12 @@ export async function createGolfCourse(formData: FormData) {
     throw new Error("ゴルフ場名は必須です");
   }
 
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new Error("ログインが必要です");
+
   await prisma.mstGolfCourse.create({
     data: {
-      userId: "dummy-user", // ← MVPでは仮でOK
+      userId: currentUser.id,
       name,
     },
   });
