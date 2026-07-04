@@ -120,3 +120,33 @@
   text-decoration: none;
 }
 .nav-back:hover { text-decoration: underline; }
+
+/* スコア表（/rounds/[roundId]/holes）専用の入力欄スタイル */
+.table-input {
+  border: 1px solid rgb(209 213 219); /* gray-300 */
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  width: 3.5rem;
+  text-align: center;
+  color: rgb(17 24 39); /* gray-900 */
+  background: white;
+}
+.table-input:focus {
+  outline: none;
+  border-color: rgb(17 24 39);
+}
+
+.table-select {
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(17 24 39);
+  background: white;
+  cursor: pointer;
+}
+.table-select:focus {
+  outline: none;
+  border-color: rgb(17 24 39);
+}
