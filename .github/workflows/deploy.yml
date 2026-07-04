@@ -1,0 +1,26 @@
+name: Deploy golf-web
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  migrate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Prisma migrations against production
+        run: node node_modules/prisma/build/index.js migrate deploy
+        env:
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+
+      - name: Trigger Vercel deployment
+        run: curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
