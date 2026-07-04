@@ -59,10 +59,17 @@ async function buildHoleData(layoutId: string, scores: ParsedScore[]) {
   return holeData;
 }
 
-/** roundIdが指定され、かつcurrentUser所有であれば上書きモード。それ以外はnull（新規作成にフォールバック） */
-async function resolveOverwriteRoundId(roundId: string | undefined, userId: string) {
+/**
+ * roundIdが指定され、かつcurrentUser所有であれば上書きモード。それ以外はnull（新規作成にフォールバック）
+ * トランザクション内でのみ呼び出すこと（TOCTOU脆弱性対策）
+ */
+async function resolveOverwriteRoundIdInTx(
+  tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
+  roundId: string | undefined,
+  userId: string
+) {
   if (!roundId) return null;
-  const round = await prisma.trnRound.findUnique({ where: { id: roundId } });
+  const round = await tx.trnRound.findUnique({ where: { id: roundId } });
   if (!round || round.userId !== userId) return null;
   return round.id;
 }
@@ -92,9 +99,10 @@ export async function importGdoScore(input: ImportScoreInput) {
   if (!currentUser) throw new Error("ログインが必要です");
 
   const holeData = await buildHoleData(layoutId, scores);
-  const overwriteRoundId = await resolveOverwriteRoundId(roundId, currentUser.id);
 
   const resultRoundId = await prisma.$transaction(async (tx) => {
+    const overwriteRoundId = await resolveOverwriteRoundIdInTx(tx, roundId, currentUser.id);
+
     if (overwriteRoundId) {
       await upsertHoleResults(tx, overwriteRoundId, holeData);
       return overwriteRoundId;
@@ -123,9 +131,10 @@ export async function importGdoScore18H(input: ImportScore18HInput) {
     buildHoleData(firstLayoutId, firstScores),
     buildHoleData(secondLayoutId, secondScores),
   ]);
-  const overwriteRoundId = await resolveOverwriteRoundId(roundId, currentUser.id);
 
   const resultRoundId = await prisma.$transaction(async (tx) => {
+    const overwriteRoundId = await resolveOverwriteRoundIdInTx(tx, roundId, currentUser.id);
+
     if (overwriteRoundId) {
       await upsertHoleResults(tx, overwriteRoundId, [...firstHoleData, ...secondHoleData]);
       return overwriteRoundId;
