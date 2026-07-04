@@ -2,6 +2,7 @@
 
 import { prisma } from "@/src/lib/db/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 
 export type ImportScoreInput = {
   golfCourseId: string;
@@ -12,6 +13,9 @@ export type ImportScoreInput = {
 
 export async function importGdoScore(input: ImportScoreInput) {
   const { golfCourseId, layoutId, playedAt, scores } = input;
+
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new Error("ログインが必要です");
 
   // layoutId のホール一覧を取得してholeNumber→holeIdのマップを作る
   const layout = await prisma.mstCourseLayout.findUnique({
@@ -50,7 +54,7 @@ export async function importGdoScore(input: ImportScoreInput) {
   const round = await prisma.$transaction(async (tx) => {
     const created = await tx.trnRound.create({
       data: {
-        userId: "dummy-user",
+        userId: currentUser.id,
         golfCourseId,
         playedAt: new Date(playedAt),
       },

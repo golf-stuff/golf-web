@@ -1,8 +1,14 @@
 import Link from 'next/link'
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 
 export default async function GolfCourseListPage() {
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
+
   const courses = await prisma.mstGolfCourse.findMany({
+    where: { userId: currentUser.id },
     orderBy: { createdAt: "desc" },
   });
 

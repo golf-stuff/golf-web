@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut } from '@/app/login/actions'
 
 const NAV_LINKS = [
   { href: '/', label: 'ダッシュボード' },
@@ -36,6 +37,13 @@ export default function HeaderNav() {
           )
         })}
       </nav>
+      <div className="flex items-center ml-auto pr-6">
+        <form action={signOut}>
+          <button type="submit" className="text-xs text-gray-400 hover:text-gray-600">
+            ログアウト
+          </button>
+        </form>
+      </div>
     </header>
   )
 }

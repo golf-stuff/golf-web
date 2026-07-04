@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 import { createCourseLayout } from "../../actions";
 import { updateCourseLayoutName } from "../../actions";
 import Link from "next/link";
@@ -11,6 +13,8 @@ type Props = {
 
 export default async function CourseLayoutPage({ params }: Props) {
   const { golfCourseId } = await params;
+  const currentUser = await getCurrentUser();
+  if (!currentUser) redirect("/login");
 
   const golfCourse = await prisma.mstGolfCourse.findUnique({
     where: { id: golfCourseId },
@@ -26,7 +30,7 @@ export default async function CourseLayoutPage({ params }: Props) {
     },
   });
 
-  if (!golfCourse) {
+  if (!golfCourse || golfCourse.userId !== currentUser.id) {
     return <div>ゴルフ場が見つかりません</div>;
   }
 

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/src/lib/db/prisma";
 import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
 
 /**
  * 新しいラウンドを登録
@@ -14,9 +15,12 @@ import { redirect } from "next/navigation";
     throw new Error("入力が不足しています");
   }
 
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new Error("ログインが必要です");
+
   const round = await prisma.trnRound.create({
     data: {
-      userId: "dummy-user",
+      userId: currentUser.id,
       golfCourseId,
       playedAt: new Date(playedAt),
     },
