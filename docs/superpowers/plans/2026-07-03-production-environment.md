@@ -1381,13 +1381,20 @@ VERCEL_DEPLOY_HOOK_URL = <Task 9 Step6で発行したDeploy Hook URL>
 
 - [ ] **Step 2: Vercelの自動デプロイ（Git連携）を無効化する**
 
-Vercel Project Settings → Git → 「Connected Git Repository」のIgnored Build Stepに以下を設定し、通常の`git push`ではビルドが走らないようにする（Deploy Hook経由のみ実際のデプロイを行う）:
+（2026-07-04訂正：当初「Ignored Build Step」に`exit 0`を設定する方法を想定していたが、これは**Deploy Hook経由のビルドにも適用されてしまい**、Deploy Hookを叩いてもデプロイが起動しないという不具合が発生した。正しくは`vercel.json`の`git.deploymentEnabled`を使う）
 
-```bash
-exit 0
+1. Vercel Project Settings → General → **Ignored Build Step は Automatic（デフォルト）のまま**にする（`exit 0`は設定しない）
+2. リポジトリルートに`vercel.json`を作成する:
+
+```json
+{
+  "git": {
+    "deploymentEnabled": false
+  }
+}
 ```
 
-（このコマンドは常に成功=0を返すため、Vercelは「ビルド不要」と判断してスキップする。Deploy Hookから叩かれた場合はこのIgnored Build Stepは適用されず、常にビルドが実行される）
+`git.deploymentEnabled: false`は「Gitへのpushをトリガーとした自動デプロイ」だけを無効化する設定で、Deploy Hook（API経由の明示的なトリガー）には一切影響しない。これにより、通常の`git push`ではビルドが走らず、Deploy Hookを叩いた時だけデプロイが実行される。
 
 - [ ] **Step 3: GitHub Actionsワークフローを作成する**
 
