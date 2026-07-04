@@ -8,91 +8,52 @@ export default async function RoundsPage() {
       golfCourse: true,
       holeResults: {
         include: {
-          hole: true, // ★ par を取るために必須
+          hole: true,
         },
       },
     },
   });
 
   return (
-    <main>
-      <h1>ラウンド履歴</h1>
+    <main className="p-6 max-w-2xl mx-auto flex flex-col gap-4">
+      <div className="flex justify-between items-center">
+        <h1 className="page-heading">ラウンド履歴</h1>
+        <div className="flex gap-2">
+          <Link href="/rounds/import" className="btn-secondary text-xs px-3 py-1.5">
+            GDOインポート
+          </Link>
+          <Link href="/rounds/new" className="btn-primary text-xs px-3 py-1.5">
+            ＋ 新規
+          </Link>
+        </div>
+      </div>
 
       {rounds.length === 0 ? (
-        <p>ラウンド履歴はまだありません。</p>
+        <div className="page-card text-sm text-gray-400 text-center py-8">
+          ラウンド履歴はまだありません
+        </div>
       ) : (
-        <table
-          style={{
-            borderCollapse: "collapse",
-            marginTop: "1rem",
-            fontSize: "0.9rem",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={thStyle}>No</th>
-              <th style={thStyle}>プレイ日</th>
-              <th style={thStyle}>ゴルフ場</th>
-              <th style={thStyle}>スコア</th>
-              <th style={thStyle}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rounds.map((round: { id: string; playedAt: Date; golfCourse: { name: string }; holeResults: { stroke: number }[] }, index: number) => {
-              const totalScore = round.holeResults.reduce(
-                (sum: number, r: { stroke: number }) => sum + r.stroke,
-                0
-              );
-
-              return (
-                <tr key={round.id}>
-                  <td style={tdCenter}>{index + 1}</td>
-                  <td style={tdCenter}>
-                    {round.playedAt.toISOString().slice(0, 10)}
-                  </td>
-                  <td style={tdLeft}>{round.golfCourse.name}</td>
-                  <td style={tdCenter}>{totalScore}</td>
-                  <td style={tdCenter}>
-                    <Link href={`/rounds/${round.id}/holes`}>
-                      編集
-                    </Link>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="page-card flex flex-col">
+          {rounds.map((round: { id: string; playedAt: Date; golfCourse: { name: string }; holeResults: { stroke: number }[] }, index: number) => {
+            const totalScore = round.holeResults.reduce((sum, r) => sum + r.stroke, 0);
+            return (
+              <div
+                key={round.id}
+                className={`flex items-center py-2.5 ${index < rounds.length - 1 ? 'border-b border-gray-100' : ''}`}
+              >
+                <div className="text-xs text-gray-400 w-24 flex-shrink-0">
+                  {round.playedAt.toISOString().slice(0, 10).replace(/-/g, '/')}
+                </div>
+                <div className="flex-1 text-sm text-gray-900">{round.golfCourse.name}</div>
+                <div className="text-xl font-medium tabular-nums text-gray-900 mr-4">{totalScore || '—'}</div>
+                <Link href={`/rounds/${round.id}/holes`} className="btn-ghost text-xs">
+                  編集
+                </Link>
+              </div>
+            );
+          })}
+        </div>
       )}
-
-      <div style={{ marginTop: "1rem", display: "flex", gap: "1rem" }}>
-        <Link href="/rounds/new">
-          ＋ 新しいラウンドを追加
-        </Link>
-        <Link href="/rounds/import">
-          📋 GDOからインポート
-        </Link>
-      </div>
     </main>
   );
 }
-
-/* ---------- styles ---------- */
-
-const thStyle: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "6px 8px",
-  backgroundColor: "#f5f5f5",
-  whiteSpace: "nowrap",
-};
-
-const tdCenter: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "6px 8px",
-  textAlign: "center",
-};
-
-const tdLeft: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "6px 8px",
-  textAlign: "left",
-};

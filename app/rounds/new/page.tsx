@@ -8,38 +8,35 @@ export default async function NewRoundPage() {
   });
 
   return (
-    <main>
+    <main className="p-6 max-w-lg mx-auto flex flex-col gap-4">
       <nav>
-        <Link href="/rounds">
-          ラウンド履歴へ戻る
-        </Link>
+        <Link href="/rounds" className="nav-back">← ラウンド履歴</Link>
       </nav>
+      <h1 className="page-heading">ラウンドを作成</h1>
 
-      <h1>ラウンド作成</h1>
-
-      <form action={createRound}>
+      <form action={createRound} className="page-card flex flex-col gap-5">
         <div>
-          <label>
-            日付
-            <input type="date" name="playedAt" required />
-          </label>
+          <label className="field-label" htmlFor="playedAt">プレー日</label>
+          <input
+            id="playedAt"
+            type="date"
+            name="playedAt"
+            required
+            className="input-underline"
+          />
         </div>
-
         <div>
-          <label>
-            ゴルフ場
-            <select name="golfCourseId" required>
-              <option value="">選択してください</option>
-              {golfCourses.map((gc: { id: string; name: string }) => (
-                <option key={gc.id} value={gc.id}>
-                  {gc.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <label className="field-label" htmlFor="golfCourseId">ゴルフ場</label>
+          <select id="golfCourseId" name="golfCourseId" required className="select-underline">
+            <option value="">選択してください</option>
+            {golfCourses.map((gc: { id: string; name: string }) => (
+              <option key={gc.id} value={gc.id}>{gc.name}</option>
+            ))}
+          </select>
         </div>
-
-        <button type="submit">次へ</button>
+        <div>
+          <button type="submit" className="btn-primary">次へ</button>
+        </div>
       </form>
     </main>
   );

@@ -23,7 +23,7 @@ export default async function CourseLayoutPage({ params }: Props) {
           },
         },
       },
-    },    
+    },
   });
 
   if (!golfCourse) {
@@ -31,154 +31,57 @@ export default async function CourseLayoutPage({ params }: Props) {
   }
 
   return (
-    <main>
-      {/* 戻る導線 */}
+    <main className="p-6 max-w-2xl mx-auto flex flex-col gap-4">
       <nav>
-        <Link href="/golf-courses">
-          ← ゴルフ場一覧へ戻る
-        </Link>
+        <Link href="/golf-courses" className="nav-back">← ゴルフ場一覧</Link>
       </nav>
+      <h1 className="page-heading">{golfCourse.name} — コース管理</h1>
 
-      <h1>{golfCourse.name} のコース管理</h1>
-
-      <section>
-        <h2>登録済みコース</h2>
-        <ul>
-          {golfCourse.layouts.map((layout: { id: string; name: string; holeCount: number; holes: { id: string; holeNumber: number; par: number; yardRegular: number }[] }) => {
-            const hasHoles = layout.holes.length > 0;
-
-            return (
-              <li key={layout.id} style={{ marginBottom: "1.5rem" }}>
-                {/* コース名編集フォーム */}
-                <form
-                  action={updateCourseLayoutName}
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}
-                >
-                  <input type="hidden" name="layoutId" value={layout.id} />
-                  <input type="hidden" name="golfCourseId" value={golfCourse.id} />
-
-                  <input
-                    type="text"
-                    name="name"
-                    defaultValue={layout.name}
-                    style={{ width: "8rem" }}
-                    required
-                  />
-
-                  <button type="submit">保存</button>
-                </form>
-                <span style={{ marginLeft: "0.5rem", color: "#666" }}>
-                  （{layout.holeCount}H）
-                </span>
-                <strong>
-                  {layout.name}（{layout.holeCount}H）
-                </strong>
-
-                {hasHoles ? (
-                  <div style={{ marginLeft: "1rem", marginTop: "0.5rem" }}>
-                    <table
-                      style={{
-                        borderCollapse: "collapse",
-                        marginTop: "0.5rem",
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      <tbody>
-                        <tr>
-                          <th style={thStyle}>Hole</th>
-                          {layout.holes.map(h => (
-                            <td key={h.id} style={tdCenterStyle}>
-                              {h.holeNumber}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th style={thStyle}>Par</th>
-                          {layout.holes.map(h => (
-                            <td key={h.id} style={tdCenterStyle}>
-                              {h.par}
-                            </td>
-                          ))}
-                        </tr>
-                        <tr>
-                          <th style={thStyle}>Yard</th>
-                          {layout.holes.map(h => (
-                            <td key={h.id} style={tdRightStyle}>
-                              {h.yardRegular}
-                            </td>
-                          ))}
-                        </tr>
-                      </tbody>
-                    </table>
-
-
-                  </div>
-                ) : (
-                  <div style={{ marginLeft: "1rem", color: "#666" }}>
-                    （未登録）
-                  </div>
-                )}
-
-
-                <div style={{ marginTop: "0.25rem" }}>
-                  <Link
-                    href={`/golf-courses/${golfCourse.id}/layouts/${layout.id}/holes`}
-                  >
-                    ホール定義
-                  </Link>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-
-      </section>
-
-      <section>
-        <h2>コースを追加</h2>
-
-        <form action={createCourseLayout}>
-          <input
-            type="hidden"
-            name="golfCourseId"
-            value={golfCourse.id}
-          />
-
+      {/* コース追加フォーム */}
+      <div className="page-card flex flex-col gap-4">
+        <span className="page-subheading">コースを追加</span>
+        <form action={createCourseLayout} className="flex flex-col gap-4">
+          <input type="hidden" name="golfCourseId" value={golfCourseId} />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="field-label">コース名</label>
+              <input type="text" name="name" required placeholder="例：OUT" className="input-underline" />
+            </div>
+            <div>
+              <label className="field-label">ホール数</label>
+              <input type="number" name="holeCount" required min={1} max={18} defaultValue={9} className="input-underline" />
+            </div>
+          </div>
           <div>
-            <label>
-              コース名
-              <input
-                type="text"
-                name="name"
-                placeholder="OUT / IN / 東 / 西"
-                required
-              />
-            </label>
+            <button type="submit" className="btn-primary">追加</button>
+          </div>
+        </form>
+      </div>
+
+      {/* コース一覧 */}
+      {golfCourse.layouts.map((layout: { id: string; name: string; holeCount: number; holes: { holeNumber: number; par: number }[] }) => (
+        <div key={layout.id} className="page-card flex flex-col gap-3">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="page-subheading">{layout.name}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{layout.holeCount}H · {layout.holes.length}ホール登録済</div>
+            </div>
+            <Link href={`/golf-courses/${golfCourseId}/layouts/${layout.id}/holes`} className="btn-secondary text-xs px-3 py-1.5">
+              ホール設定
+            </Link>
           </div>
 
-          <button type="submit">追加</button>
-        </form>
-      </section>
+          {/* コース名変更フォーム */}
+          <form action={updateCourseLayoutName} className="flex gap-2 items-end border-t border-gray-100 pt-3">
+            <input type="hidden" name="layoutId" value={layout.id} />
+            <div className="flex-1">
+              <label className="field-label">コース名を変更</label>
+              <input type="text" name="name" defaultValue={layout.name} className="input-underline" />
+            </div>
+            <button type="submit" className="btn-secondary text-xs px-3 py-1.5">変更</button>
+          </form>
+        </div>
+      ))}
     </main>
   );
 }
-
-const thStyle: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "4px 8px",
-  textAlign: "center",
-  backgroundColor: "#f9f9f9",
-  whiteSpace: "nowrap",
-};
-
-const tdCenterStyle: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "4px 8px",
-  textAlign: "center",
-};
-
-const tdRightStyle: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "4px 8px",
-  textAlign: "right",
-};

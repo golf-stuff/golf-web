@@ -93,28 +93,48 @@ export default async function RoundHolesPage({ params }: Props) {
   const totalPenalty = holeResultsTyped.reduce((sum, r) => sum + (r.penalty ?? 0), 0);
 
   return (
-    <main>
+    <main className="p-4 flex flex-col gap-4">
       <nav>
-        <Link href="/rounds">
-          ラウンド履歴へ戻る
-        </Link>
+        <Link href="/rounds" className="nav-back">← ラウンド履歴</Link>
       </nav>
 
-      <h1>ラウンド入力</h1>
-      <p>{round.golfCourse.name}</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="page-heading">{round.golfCourse.name}</h1>
+          <div className="text-xs text-gray-400 mt-0.5">
+            {round.playedAt.toISOString().slice(0, 10).replace(/-/g, '/')}
+          </div>
+        </div>
+        <Link
+          href={`/rounds/import?roundId=${round.id}`}
+          className="btn-secondary text-xs px-3 py-1.5"
+        >
+          GDOで上書き
+        </Link>
+      </div>
 
-      <section style={{ marginBottom: "1rem" }}>
-        <h2>合計</h2>
-        <ul>
-          <li>合計スコア：{totalScore}</li>
-          <li>合計パット：{totalPutt}</li>
-          <li>合計ペナルティ：{totalPenalty}</li>
-        </ul>
-      </section>
+      {/* 合計サマリー */}
+      <div className="page-card">
+        <div className="flex gap-6">
+          <div>
+            <div className="text-xs text-gray-400">合計スコア</div>
+            <div className="text-2xl font-medium tabular-nums">{totalScore}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-400">合計パット</div>
+            <div className="text-2xl font-medium tabular-nums">{totalPutt}</div>
+          </div>
+          <div>
+            <div className="text-xs text-gray-400">ペナルティ</div>
+            <div className="text-2xl font-medium tabular-nums">{totalPenalty}</div>
+          </div>
+        </div>
+      </div>
 
       <form action={saveRoundHoles}>
         <input type="hidden" name="roundId" value={round.id} />
 
+        {/* コース別テーブル（内部スタイルはそのまま） */}
         {round.golfCourse.layouts.map((layout: { id: string; name: string; holes: { id: string; holeNumber: number; par: number; yardRegular: number }[] }) => {
           // この layout に属する holeId を集める
           const layoutHoleIds = new Set(
@@ -135,7 +155,7 @@ export default async function RoundHolesPage({ params }: Props) {
                   パット {layoutPutt}
                   {" / "}
                   ペナルティ {layoutPenalty}
-                </div>              
+                </div>
               <table style={{ borderCollapse: "collapse" }}>
                 <thead>
                   {/* グループ行 */}
@@ -296,7 +316,7 @@ export default async function RoundHolesPage({ params }: Props) {
                               type="number"
                               name={`hole_${hole.id}_greenBunker`}
                               min={0}
-                              max={99}                              
+                              max={99}
                               defaultValue={result?.greenBunker ?? ""}
                             />
                           </td>
@@ -305,24 +325,24 @@ export default async function RoundHolesPage({ params }: Props) {
                               type="number"
                               name={`hole_${hole.id}_fairwayBunker`}
                               min={0}
-                              max={99}                              
+                              max={99}
                               defaultValue={result?.fairwayBunker ?? ""}
                             />
-                          </td>                          
+                          </td>
                         </tr>
-                        
+
                     );
                   })}
                 </tbody>
               </table>
             </section>
-          
+
           );
         })}
 
-        <button type="submit" style={{ marginTop: "1rem" }}>
-          保存
-        </button>
+        <div className="mt-4">
+          <button type="submit" className="btn-primary">保存</button>
+        </div>
       </form>
     </main>
   );
