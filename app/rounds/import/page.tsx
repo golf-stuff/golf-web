@@ -4,9 +4,15 @@ import { prisma } from '@/src/lib/db/prisma'
 import { getCurrentUser } from '@/src/lib/auth/getCurrentUser'
 import ImportForm from './ImportForm'
 
-export default async function ImportPage() {
+type Props = {
+  searchParams: Promise<{ roundId?: string }>
+}
+
+export default async function ImportPage({ searchParams }: Props) {
   const currentUser = await getCurrentUser()
   if (!currentUser) redirect('/login')
+
+  const { roundId } = await searchParams
 
   const golfCourses = await prisma.mstGolfCourse.findMany({
     where: { userId: currentUser.id },
@@ -19,18 +25,38 @@ export default async function ImportPage() {
     },
   })
 
+  // roundIdが指定されていても、currentUserの所有ラウンドでなければnull（新規作成モードにフォールバック）
+  const existingRoundRow = roundId
+    ? await prisma.trnRound.findUnique({
+        where: { id: roundId },
+        select: { id: true, golfCourseId: true, playedAt: true, userId: true },
+      })
+    : null
+  const existingRound = existingRoundRow && existingRoundRow.userId === currentUser.id
+    ? {
+        id: existingRoundRow.id,
+        golfCourseId: existingRoundRow.golfCourseId,
+        playedAt: existingRoundRow.playedAt.toISOString().slice(0, 10),
+      }
+    : null
+
   return (
     <main className="p-6 max-w-lg mx-auto flex flex-col gap-4">
       <nav>
-        <Link href="/rounds" className="text-xs text-blue-600 hover:underline">
-          ← ラウンド一覧
+        <Link
+          href={existingRound ? `/rounds/${existingRound.id}/holes` : '/rounds'}
+          className="nav-back"
+        >
+          ← {existingRound ? 'ホール入力へ戻る' : 'ラウンド一覧'}
         </Link>
       </nav>
 
-      <h1 className="text-lg font-medium text-gray-900">GDOスコアインポート</h1>
+      <h1 className="page-heading">
+        {existingRound ? 'GDOスコアで上書き' : 'GDOスコアインポート'}
+      </h1>
 
       {golfCourses.length === 0 ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 text-sm text-yellow-800">
+        <div className="page-card bg-yellow-50 border-yellow-200 text-sm text-yellow-800">
           <p className="font-medium mb-1">ゴルフ場が登録されていません</p>
           <p className="text-xs text-yellow-700 mb-3">
             インポートするには、まずゴルフ場とコースレイアウト（OUT/IN）を登録してください。
@@ -40,7 +66,7 @@ export default async function ImportPage() {
           </Link>
         </div>
       ) : (
-        <ImportForm golfCourses={golfCourses} />
+        <ImportForm golfCourses={golfCourses} existingRound={existingRound} />
       )}
     </main>
   )
