@@ -34,7 +34,7 @@
 - Consumes: nothing
 - Produces: Tailwind utility classes available in all `app/` and `src/` files
 
-- [ ] **Step 1: Install Tailwind and PostCSS**
+- [x] **Step 1: Install Tailwind and PostCSS**
 
 ```bash
 cd golf-web
@@ -43,7 +43,7 @@ npm install -D tailwindcss postcss autoprefixer
 
 Expected: `tailwindcss`, `postcss`, `autoprefixer` appear in `devDependencies`.
 
-- [ ] **Step 2: Create `tailwind.config.ts`**
+- [x] **Step 2: Create `tailwind.config.ts`**
 
 ```typescript
 import type { Config } from 'tailwindcss'
@@ -62,7 +62,7 @@ const config: Config = {
 export default config
 ```
 
-- [ ] **Step 3: Create `postcss.config.js`**
+- [x] **Step 3: Create `postcss.config.js`**
 
 ```javascript
 module.exports = {
@@ -73,7 +73,7 @@ module.exports = {
 }
 ```
 
-- [ ] **Step 4: Create `app/globals.css`**
+- [x] **Step 4: Create `app/globals.css`**
 
 ```css
 @tailwind base;
@@ -81,7 +81,7 @@ module.exports = {
 @tailwind utilities;
 ```
 
-- [ ] **Step 5: Update `app/layout.tsx` to import globals.css**
+- [x] **Step 5: Update `app/layout.tsx` to import globals.css**
 
 Replace the entire file with:
 
@@ -103,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 6: Verify Tailwind works**
+- [x] **Step 6: Verify Tailwind works**
 
 ```bash
 npm run build
@@ -111,7 +111,7 @@ npm run build
 
 Expected: build succeeds with no errors. If you see `Cannot find module 'tailwindcss'`, run `npm install` again.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tailwind.config.ts postcss.config.js app/globals.css app/layout.tsx package.json package-lock.json
@@ -130,7 +130,7 @@ git commit -m "chore: install and configure Tailwind CSS"
 - Consumes: nothing
 - Produces: `npm run test` runs Vitest for files matching `**/__tests__/**/*.test.ts`
 
-- [ ] **Step 1: Install Vitest**
+- [x] **Step 1: Install Vitest**
 
 ```bash
 npm install -D vitest
@@ -138,7 +138,7 @@ npm install -D vitest
 
 Expected: `vitest` appears in `devDependencies`.
 
-- [ ] **Step 2: Create `vitest.config.ts`**
+- [x] **Step 2: Create `vitest.config.ts`**
 
 ```typescript
 import { defineConfig } from 'vitest/config'
@@ -157,7 +157,7 @@ export default defineConfig({
 })
 ```
 
-- [ ] **Step 3: Add test script to `package.json`**
+- [x] **Step 3: Add test script to `package.json`**
 
 Open `package.json` and add `"test": "vitest run"` to the `scripts` section:
 
@@ -173,7 +173,7 @@ Open `package.json` and add `"test": "vitest run"` to the `scripts` section:
 }
 ```
 
-- [ ] **Step 4: Verify Vitest runs**
+- [x] **Step 4: Verify Vitest runs**
 
 ```bash
 npm run test
@@ -181,7 +181,7 @@ npm run test
 
 Expected: `No test files found` — this is correct at this stage.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add vitest.config.ts package.json package-lock.json
@@ -201,14 +201,14 @@ git commit -m "chore: install and configure Vitest"
 - Consumes: nothing
 - Produces: nothing (cleanup only)
 
-- [ ] **Step 1: Delete the plays directory and dead library files**
+- [x] **Step 1: Delete the plays directory and dead library files**
 
 ```bash
 rm -rf app/plays
 rm src/lib/apiClient.ts src/lib/types.ts
 ```
 
-- [ ] **Step 2: Check for remaining imports**
+- [x] **Step 2: Check for remaining imports**
 
 ```bash
 grep -r "apiClient\|from.*src/lib/types" app/ src/ --include="*.ts" --include="*.tsx"
@@ -216,7 +216,7 @@ grep -r "apiClient\|from.*src/lib/types" app/ src/ --include="*.ts" --include="*
 
 Expected: no output. If any files appear, open them and remove the relevant import lines.
 
-- [ ] **Step 3: Verify the build still passes**
+- [x] **Step 3: Verify the build still passes**
 
 ```bash
 npm run build
@@ -224,7 +224,7 @@ npm run build
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A
@@ -243,7 +243,7 @@ git commit -m "chore: remove legacy plays/ system and dead apiClient/types files
 - Consumes: nothing from other tasks
 - Produces: `<HeaderNav />` — client component, no props, renders a `<header>` with 3 nav links
 
-- [ ] **Step 1: Create `app/_components/HeaderNav.tsx`**
+- [x] **Step 1: Create `app/_components/HeaderNav.tsx`**
 
 ```tsx
 'use client'
@@ -289,7 +289,7 @@ export default function HeaderNav() {
 }
 ```
 
-- [ ] **Step 2: Update `app/layout.tsx` to include HeaderNav**
+- [x] **Step 2: Update `app/layout.tsx` to include HeaderNav**
 
 Replace the entire file with:
 
@@ -315,7 +315,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 ```bash
 npm run build
@@ -323,7 +323,7 @@ npm run build
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/_components/HeaderNav.tsx app/layout.tsx
@@ -346,7 +346,7 @@ git commit -m "feat: add common header nav"
   - `computeDashboardData(rounds: RoundSummary[]): DashboardData` — exported from `metrics.ts`
   - Types `RoundSummary` and `DashboardData` exported from their respective files
 
-- [ ] **Step 1: Create `src/lib/dashboard/queries.ts`**
+- [x] **Step 1: Create `src/lib/dashboard/queries.ts`**
 
 ```typescript
 import { prisma } from '@/src/lib/db/prisma'
@@ -400,7 +400,7 @@ export async function fetchRoundSummaries(): Promise<RoundSummary[]> {
 }
 ```
 
-- [ ] **Step 2: Write failing tests in `src/lib/dashboard/__tests__/metrics.test.ts`**
+- [x] **Step 2: Write failing tests in `src/lib/dashboard/__tests__/metrics.test.ts`**
 
 ```typescript
 import { describe, it, expect } from 'vitest'
@@ -568,7 +568,7 @@ describe('computeDashboardData', () => {
 })
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 ```bash
 npm run test
@@ -576,7 +576,7 @@ npm run test
 
 Expected: FAIL — `Cannot find module '../metrics'`
 
-- [ ] **Step 4: Create `src/lib/dashboard/metrics.ts`**
+- [x] **Step 4: Create `src/lib/dashboard/metrics.ts`**
 
 ```typescript
 import type { RoundSummary } from './queries'
@@ -667,7 +667,7 @@ export function computeDashboardData(rounds: RoundSummary[]): DashboardData {
 }
 ```
 
-- [ ] **Step 5: Run tests to verify they all pass**
+- [x] **Step 5: Run tests to verify they all pass**
 
 ```bash
 npm run test
@@ -675,7 +675,7 @@ npm run test
 
 Expected: all tests PASS. If any fail, fix `metrics.ts` logic before continuing.
 
-- [ ] **Step 6: Type-check**
+- [x] **Step 6: Type-check**
 
 ```bash
 npm run build
@@ -683,7 +683,7 @@ npm run build
 
 Expected: build succeeds.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/lib/dashboard/
@@ -704,7 +704,7 @@ git commit -m "feat: add dashboard data layer with metrics tests"
   - `recent20: { id: string; score: number }[]`
 - Produces: `<ScoreGraph yearlyAverages={...} recent20={...} />` — client component with toggle state
 
-- [ ] **Step 1: Install Recharts**
+- [x] **Step 1: Install Recharts**
 
 ```bash
 npm install recharts
@@ -712,7 +712,7 @@ npm install recharts
 
 Expected: `recharts` appears in `dependencies`.
 
-- [ ] **Step 2: Create `app/_components/ScoreGraph.tsx`**
+- [x] **Step 2: Create `app/_components/ScoreGraph.tsx`**
 
 ```tsx
 'use client'
@@ -785,7 +785,7 @@ export default function ScoreGraph({ yearlyAverages, recent20 }: Props) {
 }
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 ```bash
 npm run build
@@ -793,7 +793,7 @@ npm run build
 
 Expected: build succeeds.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/_components/ScoreGraph.tsx package.json package-lock.json
@@ -814,7 +814,7 @@ git commit -m "feat: add ScoreGraph client component with Recharts"
   - `<ScoreGraph yearlyAverages={...} recent20={...} />` from `./_components/ScoreGraph`
 - Produces: the `/` route rendered as a Server Component
 
-- [ ] **Step 1: Replace `app/page.tsx`**
+- [x] **Step 1: Replace `app/page.tsx`**
 
 ```tsx
 import Link from 'next/link'
@@ -943,7 +943,7 @@ export default async function DashboardPage() {
 }
 ```
 
-- [ ] **Step 2: Type-check and build**
+- [x] **Step 2: Type-check and build**
 
 ```bash
 npm run build
@@ -951,7 +951,7 @@ npm run build
 
 Expected: build succeeds with no errors.
 
-- [ ] **Step 3: Start dev server and verify visually**
+- [x] **Step 3: Start dev server and verify visually**
 
 ```bash
 npm run dev
@@ -959,19 +959,19 @@ npm run dev
 
 Open http://localhost:3000 and check each of the following:
 
-- [ ] Header shows "Golf Stuff" title with 3 nav links
-- [ ] "ダッシュボード" is underlined/highlighted as the active link
-- [ ] 生涯サマリーカード: ベストスコア・ベストハーフが表示される（データなしの場合は "—"）
-- [ ] 今年サマリーカード: ラウンド数・ベストスコア・平均スコアが表示される
-- [ ] グラフカード: 棒グラフが表示される
-- [ ] 「直近20R」ボタンが初期アクティブ状態
-- [ ] 「年別平均」ボタンをクリックするとグラフが切り替わる
-- [ ] 「すべて見る →」リンクが `/rounds` へ遷移する
-- [ ] 直近ラウンド一覧に最大5件表示される（データなしの場合は "ラウンドデータがありません"）
-- [ ] `/rounds` に遷移すると "ラウンド" ナビリンクがハイライトされる
-- [ ] `/golf-courses` に遷移すると "ゴルフ場" ナビリンクがハイライトされる
+- [x] Header shows "Golf Stuff" title with 3 nav links
+- [x] "ダッシュボード" is underlined/highlighted as the active link
+- [x] 生涯サマリーカード: ベストスコア・ベストハーフが表示される（データなしの場合は "—"）
+- [x] 今年サマリーカード: ラウンド数・ベストスコア・平均スコアが表示される
+- [x] グラフカード: 棒グラフが表示される
+- [x] 「直近20R」ボタンが初期アクティブ状態
+- [x] 「年別平均」ボタンをクリックするとグラフが切り替わる
+- [x] 「すべて見る →」リンクが `/rounds` へ遷移する
+- [x] 直近ラウンド一覧に最大5件表示される（データなしの場合は "ラウンドデータがありません"）
+- [x] `/rounds` に遷移すると "ラウンド" ナビリンクがハイライトされる
+- [x] `/golf-courses` に遷移すると "ゴルフ場" ナビリンクがハイライトされる
 
-- [ ] **Step 4: Commit and push**
+- [x] **Step 4: Commit and push**
 
 ```bash
 git add app/page.tsx

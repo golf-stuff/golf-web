@@ -28,7 +28,7 @@
 - Consumes: なし（このタスクは独立して開始できる）
 - Produces: golf-webの開発ガイド。Task 2以降のSKILL.mdから `golf-web/CLAUDE.md` への参照は行わない（SKILL.mdは汎用skillのためgolf-web固有ファイルへの依存を持たせない）。CLAUDE.md側からSKILL.mdへ一文の導線を張る
 
-- [ ] **Step 1: 実際のプロジェクト構成・コマンドを確認する**
+- [x] **Step 1: 実際のプロジェクト構成・コマンドを確認する**
 
 以下を実行し、CLAUDE.mdに書く内容の裏付けを取る（このリポジトリで既に確認済みの事実を再確認するステップ）。
 
@@ -45,7 +45,7 @@ find app src prisma -maxdepth 2 -type d
 - `prisma/schema.prisma` にドメインモデル（`MstUser`, `MstGolfCourse` 等）が定義されている
 - ローカルSupabaseは `supabase status` / `supabase start` コマンドで確認・起動できる（`golf-web/` ディレクトリで実行する）
 
-- [ ] **Step 2: golf-web/CLAUDE.md を書く**
+- [x] **Step 2: golf-web/CLAUDE.md を書く**
 
 以下の内容で作成する。
 
@@ -107,7 +107,7 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 PR本文に「確認ポイント」チェックリストがある場合、`verify-pr-checklist` skill（`.claude/skills/verify-pr-checklist/SKILL.md`）を使うと、Playwrightでの動作確認をAIと対話しながら進められます。
 ```
 
-- [ ] **Step 3: 記述内容が実態と一致しているか確認する**
+- [x] **Step 3: 記述内容が実態と一致しているか確認する**
 
 以下を実行し、Step 2で書いた内容（コマンド一覧・ディレクトリ構成）と差異がないか目視で突き合わせる。
 
@@ -119,7 +119,7 @@ ls app src prisma
 
 期待: Step 2に書いたスクリプト名・ディレクトリ名が全て実際に存在する。差異があればCLAUDE.mdを修正する。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd /Users/rinda/development/golf-stuff
@@ -138,13 +138,13 @@ git commit -m "docs: golf-web用のCLAUDE.mdを追加"
 - Consumes: なし
 - Produces: `verify-pr-checklist` skill。frontmatterの `name` は `verify-pr-checklist`。本文中で使うコマンド名・手順名（`gh pr view`, `gh pr edit`, Playwright MCPツール名）はTask 3の検証で実際に呼び出す
 
-- [ ] **Step 1: skillディレクトリを作成する**
+- [x] **Step 1: skillディレクトリを作成する**
 
 ```bash
 mkdir -p /Users/rinda/development/golf-stuff/golf-web/.claude/skills/verify-pr-checklist
 ```
 
-- [ ] **Step 2: SKILL.md を書く**
+- [x] **Step 2: SKILL.md を書く**
 
 `golf-web/.claude/skills/verify-pr-checklist/SKILL.md` を以下の内容で作成する。
 
@@ -255,7 +255,7 @@ NG項目のチェックは付けない。
 - NG項目が出た時点でフロー全体を止めてしまう → 残りの項目の検証は続行する
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 cd /Users/rinda/development/golf-stuff
@@ -276,7 +276,7 @@ git commit -m "feat: verify-pr-checklist skillの初版を追加"
 - Consumes: Task 1で作成した `golf-web/CLAUDE.md`（開発コマンドの参照元）、Task 2で作成した `SKILL.md` の手順
 - Produces: 実際に動作確認済みのSKILL.md。PR #2の本文チェックボックスが更新された状態（該当する場合）
 
-- [ ] **Step 1: SKILL.mdの手順1（確認ポイント取得）を実行する**
+- [x] **Step 1: SKILL.mdの手順1（確認ポイント取得）を実行する**
 
 ```bash
 gh pr view 2 --json body --jq .body
@@ -289,7 +289,7 @@ gh pr view 2 --json body --jq .body
 
 抽出できない場合はSKILL.mdの正規表現・見出し表記の許容範囲の記述を見直す。
 
-- [ ] **Step 2: SKILL.mdの手順2（環境準備）を実行する**
+- [x] **Step 2: SKILL.mdの手順2（環境準備）を実行する**
 
 ```bash
 cd /Users/rinda/development/golf-stuff/golf-web
@@ -299,7 +299,7 @@ supabase status
 
 期待: devサーバーとSupabaseが起動していることを確認できる。応答がない場合は起動し、`curl -sf http://localhost:3000` が成功するまで待つ。
 
-- [ ] **Step 3: 3項目を分類する**
+- [x] **Step 3: 3項目を分類する**
 
 SKILL.mdの分類表に従い、以下のように分類されることを確認する。
 - 「`/rounds/import` でスコアインポートが動作する」→ 定型・機能系
@@ -308,23 +308,23 @@ SKILL.mdの分類表に従い、以下のように分類されることを確認
 
 分類結果が直感と異なる場合、SKILL.mdの分類基準の文言を調整する。
 
-- [ ] **Step 4: 定型・機能系の1項目をPlaywright MCPで実際に検証する**
+- [x] **Step 4: 定型・機能系の1項目をPlaywright MCPで実際に検証する**
 
 `webapp-testing` skillを使い、`/rounds/import` に遷移してゴルフ場・レイアウトを選択し、GDOテキストを貼り付けてパース、インポートを実行する。`golf-web/app/rounds/import/ImportForm.tsx` のUI（本文で確認済み: コース選択→レイアウト選択→プレー日→GDOテキスト貼付→パース→プレビュー→インポート）に沿って操作する。
 
 期待: パースが成功しプレビューが表示され、インポート実行後にエラーなく遷移すること。もし手順が足りず操作に迷う箇所があれば、SKILL.mdの「4. 各ポイントの検証」に具体的なヒント（例: テキストエリアのplaceholder形式に合わせたサンプルデータの用意）を追記する。
 
-- [ ] **Step 5: 主観・見た目系の1項目をSKILL.mdの手順で検証する**
+- [x] **Step 5: 主観・見た目系の1項目をSKILL.mdの手順で検証する**
 
 `golf-web/app/rounds/page.tsx`, `golf-web/app/golf-courses/page.tsx` など主要ページを巡回してスクリーンショットを撮り、ユーザーに「デザインが統一されているか」を確認してもらう。
 
 期待: ユーザーからOK/NGの回答が得られる。回答が得られるまでの提示の仕方（スクリーンショットの並べ方など）で改善点があればSKILL.mdに反映する。
 
-- [ ] **Step 6: NG項目が出た場合の記録フォーマットを試す**
+- [x] **Step 6: NG項目が出た場合の記録フォーマットを試す**
 
 「`/rounds/[id]/holes` に「GDOで上書き」ボタンがある」の検証中、意図的に失敗ケース（例: ボタン押下後のページ）も一度確認し、NGだった場合の記録（理由・再現手順）をSKILL.mdのフォーマット通りに書けるか確認する。実際にNGが出なければ、この確認は省略可（3項目とも既存実装で正しく動作する想定のため）。
 
-- [ ] **Step 7: 結果集計・PR本文更新を実行する**
+- [x] **Step 7: 結果集計・PR本文更新を実行する**
 
 全項目がOKだった場合、SKILL.mdの手順6に従いPR本文を更新する。
 
@@ -332,15 +332,15 @@ SKILL.mdの分類表に従い、以下のように分類されることを確認
 gh pr edit 2 --body "<更新後の本文（OK項目のみ- [x]に変更）>"
 ```
 
-- [ ] **Step 8: 最終レポートを手順7のフォーマットで出力する**
+- [x] **Step 8: 最終レポートを手順7のフォーマットで出力する**
 
 このタスクの実行結果を、SKILL.mdの「7. 最終レポート」フォーマットに従ってユーザーに提示する。
 
-- [ ] **Step 9: Step 1〜8で見つかったギャップをSKILL.mdに反映する**
+- [x] **Step 9: Step 1〜8で見つかったギャップをSKILL.mdに反映する**
 
 実行中に手順が曖昧だった箇所、コマンドが実態と違った箇所（例: devサーバーのポート番号、Playwright MCPの具体的なツール呼び出し方）があれば `golf-web/.claude/skills/verify-pr-checklist/SKILL.md` を修正する。
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 cd /Users/rinda/development/golf-stuff
