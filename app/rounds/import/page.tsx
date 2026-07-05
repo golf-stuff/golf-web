@@ -15,11 +15,10 @@ export default async function ImportPage({ searchParams }: Props) {
   const { roundId } = await searchParams
 
   const golfCourses = await prisma.mstGolfCourse.findMany({
-    where: { userId: currentUser.id },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { name: "asc" },
     include: {
       layouts: {
-        orderBy: { displayOrder: 'asc' },
+        orderBy: { displayOrder: "asc" },
         select: { id: true, name: true, holeCount: true },
       },
     },
@@ -58,12 +57,9 @@ export default async function ImportPage({ searchParams }: Props) {
       {golfCourses.length === 0 ? (
         <div className="page-card bg-yellow-50 border-yellow-200 text-sm text-yellow-800">
           <p className="font-medium mb-1">ゴルフ場が登録されていません</p>
-          <p className="text-xs text-yellow-700 mb-3">
-            インポートするには、まずゴルフ場とコースレイアウト（OUT/IN）を登録してください。
+          <p className="text-xs text-yellow-700">
+            インポートするには、まずゴルフ場とコースレイアウト（OUT/IN）の登録が必要です。管理者にご依頼ください。
           </p>
-          <Link href="/golf-courses" className="text-xs text-blue-600 hover:underline">
-            ゴルフ場を登録する →
-          </Link>
         </div>
       ) : (
         <ImportForm golfCourses={golfCourses} existingRound={existingRound} />
