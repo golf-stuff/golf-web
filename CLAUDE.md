@@ -15,8 +15,7 @@ golf-web/
 │   ├── rounds/                # ラウンド記録・GDOインポートページ
 │   ├── login/                  # ログインページ（未認証時のリダイレクト先）
 │   ├── auth/callback/          # Supabase Authのコールバックルート
-│   ├── _components/           # 共有UIコンポーネント（HeaderNav, ScoreGraph等）
-│   └── api/                   # APIルート
+│   └── _components/           # 共有UIコンポーネント（HeaderNav, ScoreGraph等）
 ├── src/
 │   └── lib/
 │       ├── parsers/            # GDOスコアカードパーサー等
@@ -33,7 +32,7 @@ golf-web/
 └── supabase/                  # ローカルSupabase CLI設定（config.toml等）
 ```
 
-本番デプロイ用のCI/CDワークフロー（`.github/workflows/deploy.yml`）は本タスク時点では未整備です。追加され次第、`main`へのpushを契機に`prisma migrate deploy`とVercel Deploy Hookを実行する構成になる予定です（詳細は「デプロイ」セクション参照）。
+本番デプロイ用のCI/CDワークフロー（`.github/workflows/deploy.yml`）は整備済みです。`main`へのpushを契機に`prisma migrate deploy`とVercel Deploy Hookを実行する構成になっています（詳細は「デプロイ」セクション参照）。
 
 ## 開発コマンド
 
@@ -46,6 +45,8 @@ npm run test     # Vitestで単体テストを実行（vitest run）
 ```
 
 `check` / `type-check` / `check:all` 等のスクリプトはまだ整備されていません。型チェックが必要な場合は `npx tsc --noEmit` を直接実行してください。
+
+`postinstall`（`prisma generate`）が自動実行されるため、`npm install`後に手動で`prisma generate`を叩く必要はありません（Vercelビルド時のprisma clientの不整合を防ぐための設定）。
 
 ## ローカルSupabaseの起動
 
@@ -69,9 +70,15 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 
 ## デプロイ
 
-- 本番へのデプロイは `.github/workflows/deploy.yml`（Task 10で追加予定、本タスク時点では未作成）による自動化を想定しています。
-- 想定フロー: `main` ブランチへのpush → GitHub Actions上で `prisma migrate deploy` を実行しDBマイグレーションを本番反映 → Vercel Deploy Hookを叩いてデプロイをトリガー。
+- 本番へのデプロイは `.github/workflows/deploy.yml` により自動化されています。
+- フロー: `main` ブランチへのpush → GitHub Actions上で `prisma migrate deploy` を実行しDBマイグレーションを本番反映（`secrets.PROD_DIRECT_URL` を使用）→ `secrets.VERCEL_DEPLOY_HOOK_URL` にPOSTしてVercelデプロイをトリガー。
+- `vercel.json` で `git.deploymentEnabled: false` を設定しています。これはVercelのGit連携による自動デプロイ（pushのたびに実行される標準の仕組み）を無効化するためのものです。無効化しないと、GitHub Actions経由のDeploy Hookによるデプロイと、Vercelの自動デプロイが競合してしまいます（詳細は commit `1a44f67` 参照）。
 - 手動でマイグレーションを本番適用する場合も、`DIRECT_URL`（Pooler経由ではない直接接続）を使う必要がある点に注意してください。
+
+## 計画（plans）に沿った作業
+
+- `docs/superpowers/plans/` 配下の計画ファイルは `- [ ]` 形式のチェックボックスでステップを管理しています（`superpowers:executing-plans` または `superpowers:subagent-driven-development` skillを使う前提）。
+- これらの計画に沿って作業する場合、各ステップを完了するたびに、計画ファイル自体を編集して該当のチェックボックスに `- [x]` を付けてください。作業ログとして計画ファイルが常に最新の進捗を反映するようにするためです。
 
 ## PRレビューの進め方
 
