@@ -1,17 +1,20 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import HeaderNav from './_components/HeaderNav'
+import { getCurrentUser } from '@/src/lib/auth/getCurrentUser'
 
 export const metadata: Metadata = {
   title: 'Golf Stuff',
   description: 'ゴルフスコア管理・分析',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const currentUser = await getCurrentUser()
+
   return (
     <html lang="ja">
       <body className="bg-gray-50 text-gray-900">
-        <HeaderNav />
+        <HeaderNav role={currentUser?.role ?? null} />
         {children}
       </body>
     </html>
