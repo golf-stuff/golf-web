@@ -75,6 +75,24 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 - `vercel.json` で `git.deploymentEnabled: false` を設定しています。これはVercelのGit連携による自動デプロイ（pushのたびに実行される標準の仕組み）を無効化するためのものです。無効化しないと、GitHub Actions経由のDeploy Hookによるデプロイと、Vercelの自動デプロイが競合してしまいます（詳細は commit `1a44f67` 参照）。
 - 手動でマイグレーションを本番適用する場合も、`DIRECT_URL`（Pooler経由ではない直接接続）を使う必要がある点に注意してください。
 
+## ブランチ戦略
+
+本番デプロイの頻度を抑えるため、以下のブランチフローで運用します。
+
+```
+main        ← 本番ブランチ（Vercelデプロイ・DBマイグレーションの起点）
+  ↑ PR（手動・任意タイミング）
+develop     ← 開発統合ブランチ（デプロイ・マイグレーションは発生しない）
+  ↑ PR（レビューは任意）
+feature/*   ← 個々の作業ブランチ（developから作成）
+```
+
+- 新規作業は `develop` から `feature/*` を切って開発し、`develop` へPRを作成してマージする（レビュー必須ではない）
+- `develop` → `main` のマージは、変更が溜まった段階で開発者が任意のタイミングで判断し、PRを作成する
+- `main` への直接pushは行わない
+- ブランチ作成後、並列作業を行う場合はスキル `/using-git-worktrees` を使ってworktree分離を行う
+- `develop` 上の動作確認は各自ローカルの `supabase start` によるSupabaseエミュレータで行う（`develop` 専用のステージングDB・Vercel Preview環境は現時点では用意していない）
+
 ## 計画（plans）に沿った作業
 
 - `docs/superpowers/plans/` 配下の計画ファイルは `- [ ]` 形式のチェックボックスでステップを管理しています（`superpowers:executing-plans` または `superpowers:subagent-driven-development` skillを使う前提）。
