@@ -14,12 +14,17 @@ enum fairway_keep_result {
   short
 }
 
+enum user_role {
+  user
+  admin
+}
 
 model MstUser {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   email     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role      user_role @default(user)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   golfCourses MstGolfCourse[]
   rounds      TrnRound[]
