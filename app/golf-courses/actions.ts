@@ -109,6 +109,14 @@ export async function updateCourseLayoutName(formData: FormData) {
     throw new Error("コース名は必須です");
   }
 
+  const layout = await prisma.mstCourseLayout.findUnique({
+    where: { id: layoutId },
+  });
+
+  if (!layout || layout.golfCourseId !== golfCourseId) {
+    throw new Error("コースが見つかりません");
+  }
+
   await prisma.mstCourseLayout.update({
     where: { id: layoutId },
     data: { name },
@@ -174,7 +182,9 @@ export async function saveHoles(formData: FormData) {
     where: { id: layoutId },
   });
 
-  if (!layout) throw new Error("コースが見つかりません");
+  if (!layout || layout.golfCourseId !== golfCourseId) {
+    throw new Error("コースが見つかりません");
+  }
 
   const holes = parseHoleInputsJson(holesJson);
 
