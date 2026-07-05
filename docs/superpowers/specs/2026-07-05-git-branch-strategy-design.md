@@ -39,6 +39,7 @@ feature/*   ← 個々の作業ブランチ（developから作成）
 - `develop` は検証用ブランチであり、デプロイもDBマイグレーションも発生しないこと
 - `develop → main` のマージは開発者が任意のタイミングで判断すること
 - 既存の「mainブランチへの直接commit, pushせず、featureブランチを切って対応する」という記述を、「作業は `develop` から `feature/*` を切って行い、`develop` を経由して `main` にマージする」という趣旨に更新する
+- ブランチ作成後、スキル `/using-git-worktrees` を使ってworktree分離を行う
 
 ### `.claude/skills/verify-pr-checklist/SKILL.md`
 現状はPRの確認ポイントチェックリストをレビューする想定になっている。`develop` へのPRと `main` へのPRの両方で使える内容になっているかを確認し、必要であれば「マージ先ブランチによって本番影響の有無が異なる」旨の注意書きを追加する程度の軽微な更新に留める（大幅な再設計は行わない）。
