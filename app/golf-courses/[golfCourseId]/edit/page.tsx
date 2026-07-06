@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
-import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
+import { requireAdminForPage } from "@/src/lib/auth/requireAdmin";
 import { updateGolfCourse } from "../../actions";
 
 type Props = {
@@ -12,8 +11,7 @@ type Props = {
 
 export default async function EditGolfCoursePage({ params }: Props) {
   const { golfCourseId } = await params; // Next.js 16 仕様
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/login");
+  await requireAdminForPage();
 
   if (!golfCourseId) {
     return <div>不正なIDです</div>;
@@ -23,7 +21,7 @@ export default async function EditGolfCoursePage({ params }: Props) {
     where: { id: golfCourseId },
   });
 
-  if (!course || course.userId !== currentUser.id) {
+  if (!course) {
     return <div>ゴルフ場が見つかりません</div>;
   }
 
@@ -44,6 +42,26 @@ export default async function EditGolfCoursePage({ params }: Props) {
             name="name"
             required
             defaultValue={course.name}
+            className="input-underline"
+          />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="prefecture">都道府県</label>
+          <input
+            id="prefecture"
+            type="text"
+            name="prefecture"
+            defaultValue={course.prefecture ?? ""}
+            className="input-underline"
+          />
+        </div>
+        <div>
+          <label className="field-label" htmlFor="city">市区町村</label>
+          <input
+            id="city"
+            type="text"
+            name="city"
+            defaultValue={course.city ?? ""}
             className="input-underline"
           />
         </div>

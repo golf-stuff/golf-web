@@ -37,26 +37,26 @@ describe('getCurrentUser', () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'auth-uid-1', email: 'a@example.com' } },
     })
-    mockFindUnique.mockResolvedValue({ id: 'auth-uid-1', email: 'a@example.com' })
+    mockFindUnique.mockResolvedValue({ id: 'auth-uid-1', email: 'a@example.com', role: 'admin' })
 
     const result = await getCurrentUser()
 
-    expect(result).toEqual({ id: 'auth-uid-1', email: 'a@example.com' })
+    expect(result).toEqual({ id: 'auth-uid-1', email: 'a@example.com', role: 'admin' })
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('ログイン済みだがMstUserが未作成なら、自動作成して返す', async () => {
+  it('ログイン済みだがMstUserが未作成なら、role: userで自動作成して返す', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'auth-uid-2', email: 'b@example.com' } },
     })
     mockFindUnique.mockResolvedValue(null)
-    mockCreate.mockResolvedValue({ id: 'auth-uid-2', email: 'b@example.com' })
+    mockCreate.mockResolvedValue({ id: 'auth-uid-2', email: 'b@example.com', role: 'user' })
 
     const result = await getCurrentUser()
 
     expect(mockCreate).toHaveBeenCalledWith({
       data: { id: 'auth-uid-2', email: 'b@example.com' },
     })
-    expect(result).toEqual({ id: 'auth-uid-2', email: 'b@example.com' })
+    expect(result).toEqual({ id: 'auth-uid-2', email: 'b@example.com', role: 'user' })
   })
 })
