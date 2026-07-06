@@ -93,6 +93,7 @@ feature/*   ← 個々の作業ブランチ（developから作成）
 - ブランチ作成後、並列作業を行う場合はスキル `/using-git-worktrees` を使ってworktree分離を行う
   - `.env.local` は `.gitignore` 対象のため新規worktreeには存在しない。ローカルSupabaseは全worktreeで共有する単一インスタンスなので、コピーではなくシンボリックリンクでメインリポジトリの `.env.local` を参照させる：`ln -s <メインリポジトリ絶対パス>/.env.local .env.local`
 - `develop` 上の動作確認は各自ローカルの `supabase start` によるSupabaseエミュレータで行う（`develop` 専用のステージングDB・Vercel Preview環境は現時点では用意していない）
+- Claude Code（Web/CLI）が新規セッションで自動生成する作業ブランチも、`main` ではなく `develop` を起点に作成する。セッション開始時点で `main` ベースになっている場合は、作業前に `git fetch origin develop && git checkout -B <ブランチ名> origin/develop` でブランチを作り直してからpushする
 
 ## 計画（plans）に沿った作業
 
