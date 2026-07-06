@@ -91,6 +91,7 @@ feature/*   ← 個々の作業ブランチ（developから作成）
 - `develop` → `main` のマージは、変更が溜まった段階で開発者が任意のタイミングで判断し、PRを作成する
 - `main` への直接pushは行わない
 - ブランチ作成後、並列作業を行う場合はスキル `/using-git-worktrees` を使ってworktree分離を行う
+  - `.env.local` は `.gitignore` 対象のため新規worktreeには存在しない。ローカルSupabaseは全worktreeで共有する単一インスタンスなので、コピーではなくシンボリックリンクでメインリポジトリの `.env.local` を参照させる：`ln -s <メインリポジトリ絶対パス>/.env.local .env.local`
 - `develop` 上の動作確認は各自ローカルの `supabase start` によるSupabaseエミュレータで行う（`develop` 専用のステージングDB・Vercel Preview環境は現時点では用意していない）
 
 ## 計画（plans）に沿った作業
