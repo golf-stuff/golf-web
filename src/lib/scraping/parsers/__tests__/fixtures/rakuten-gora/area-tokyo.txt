@@ -1,0 +1,32 @@
+=== https://gora.golf.rakuten.co.jp/doc/area/tokyo/ ===
+
+武蔵野ゴルフクラブ
+3.8
+2,465件
+18H / 6,580Y
+八王子市宮下町656
+中央自動車道・八王子 5km以内
+クーポン不可
+送迎あり
+練習場あり
+カート | リモコン・GPS
+コンペルームあり
+
+              <!-- コースリスト -->
+                <div class="list-content js-area-list" data-area-name="tokyo">
+                  <!-- Ad -->
+                  <script src="https://cont001.ias.global.rakuten.com/jp/gr/js/radvertise.js" charset="UTF-8"></script>
+                  <script>
+                    bust = Math.floor(1000000 * Math.random()); radvertisesc({ params: { rad_nw: 'jp', rad_site: 'Gora', rad_format: '140', rad_ftype: 'CUS', rad_month: '202301', rad_charset: 'UTF-8', rad_ssl: '1', rad_rdm: bust, rad_cont: 'area_banner_ad', rad_type: 'area_banner', rad_pos: '13' } });
+                  </script>
+                  <noscript><iframe src="https://grp101.api.ias.rakuten.co.jp/noScriptAdv/?rad_nw=jp&rad_site=Gora&rad_format=140&rad_ftype=CUS&rad_month=202301&rad_charset=UTF-8&rad_ssl=1&rad_cont=area_banner_ad&rad_type=area_banner&rad_pos=13" width="500" height="500" marginwidth="0" marginheight="0" hspace="0" vspace="0" frameborder="0" scrolling="no" bordercolor="#000000" allowtransparency="true"></iframe></noscript>
+                  <!-- /Ad -->
+
+                  <ul class="area-list">
+                    <li class="gf-card js-area-list-item" data-course-id="130001">
+  <h2 class="gf-card-name">
+    <a href="https://booking.gora.golf.rakuten.co.jp/guide/disp/c_id/130001/?l-id=area-tokyo" class="gf-card-name-link" target="_blank" rel="noopener">
+      赤羽ゴルフ倶楽部
+    </a>
+  </h2>
+</li>

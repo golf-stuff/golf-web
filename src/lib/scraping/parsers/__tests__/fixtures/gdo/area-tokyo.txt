@@ -1,0 +1,15 @@
+=== https://reserve.golfdigest.co.jp/course-guide/area/13/ ===
+
+ゴルフ場名	ICから の距離	高速道路	料金	総合評価	7月7火	8水	9木	10金	11土	12日	13月
+赤羽ゴルフ倶楽部
+23区
+赤羽ゴルフ倶楽部
+ポイント可
+クーポン可
+河川敷コース
+練習場あり 240yd
+歩き
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","url":"https://reserve.golfdigest.co.jp/course-guide/area/13/","numberOfItems":24,"itemListElement":[{"@type":"ListItem","position":1,"url":"https://reserve.golfdigest.co.jp/golf-course/360101/course-info/","name":"赤羽ゴルフ倶楽部"}]}
+</script>
