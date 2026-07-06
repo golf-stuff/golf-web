@@ -1,4 +1,11 @@
+---
+paths:
+  - .claude/skills/verify-pr-checklist/**
+---
+
 # ローカル/develop確認用テストユーザー
+
+主に `webapp-testing` skill（プラグイン提供のため本リポジトリ内にパスを持たない）・`/verify-pr-checklist` skillでのE2E動作確認時に使用する想定。
 
 ローカル開発環境およびdevelop動作確認用のSupabase Authテストユーザーは、以下の2パターンに統一する。これ以外のユーザーをMstUserに残さない。
 
