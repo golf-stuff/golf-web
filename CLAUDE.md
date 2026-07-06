@@ -64,7 +64,7 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 ## 認証
 
 - `middleware.ts` により、`/login` と `/auth/callback` を除く全ページでログインが必須になっています。未ログインでアクセスすると `/login` にリダイレクトされます。
-- ローカル開発でログインを試す場合は、Supabase Studio（`supabase start` 実行後にターミナルへ表示されるURL、デフォルトは `http://127.0.0.1:54323`）を開き、「Authentication」→「Users」からテストユーザーを作成してください。作成したメールアドレス／パスワードで `/login` からログインできます。
+- ローカル開発・develop動作確認でログインを試す場合は、[`.claude/rules/test-users.md`](.claude/rules/test-users.md) に定義された一般ユーザー／管理者ユーザーの2パターンを使用してください。Supabase Studio（`supabase start` 実行後にターミナルへ表示されるURL、デフォルトは `http://127.0.0.1:54323`）の「Authentication」→「Users」またはAdmin APIで作成できます。これ以外のテスト用ユーザーを作成した場合は、確認後に削除し、常にこの2パターンのみが残る状態を保ってください。
 - サーバーサイドでログインユーザーを取得する場合は `src/lib/auth/getCurrentUser.ts` の `getCurrentUser()` を使用します。Supabase Authのユーザー情報を取得し、`MstUser` テーブルに未登録であれば自動的に作成（upsert相当）してから返します。未ログイン時は `null` を返します。
 - Supabaseクライアントの生成は `src/lib/supabase/`（ブラウザ用・サーバー用）に集約されています。新規にSupabaseへアクセスするコードを書く場合はここのクライアントを再利用してください。
 
