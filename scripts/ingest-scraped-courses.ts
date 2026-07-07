@@ -15,44 +15,47 @@ async function main() {
   const pool = new Pool({ connectionString: requireEnv("DIRECT_URL") });
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
-  const duckDbConfig: DuckDbConfig = {
-    gcsHmacKeyId: requireEnv("SCRAPING_GCS_HMAC_KEY_ID"),
-    gcsHmacSecret: requireEnv("SCRAPING_GCS_HMAC_SECRET"),
-    gcsBucket: requireEnv("SCRAPING_GCS_BUCKET"),
-    warehousePrefix: process.env.SCRAPING_GCS_WAREHOUSE_PREFIX ?? "warehouse/golf_scraper",
-  };
+  try {
+    const duckDbConfig: DuckDbConfig = {
+      gcsHmacKeyId: requireEnv("SCRAPING_GCS_HMAC_KEY_ID"),
+      gcsHmacSecret: requireEnv("SCRAPING_GCS_HMAC_SECRET"),
+      gcsBucket: requireEnv("SCRAPING_GCS_BUCKET"),
+      warehousePrefix: process.env.SCRAPING_GCS_WAREHOUSE_PREFIX ?? "warehouse/golf_scraper",
+    };
 
-  const state = await prisma.scrapingIngestState.findUnique({ where: { id: "singleton" } });
-  const lastIngestedRunId = state?.lastIngestedRunId ?? null;
+    const state = await prisma.scrapingIngestState.findUnique({ where: { id: "singleton" } });
+    const lastIngestedRunId = state?.lastIngestedRunId ?? null;
 
-  const latestRun = await findLatestSuccessfulRun(duckDbConfig, lastIngestedRunId);
-  if (!latestRun) {
-    console.log("取り込み対象の新規runはありません。終了します。");
-    return;
-  }
+    const latestRun = await findLatestSuccessfulRun(duckDbConfig, lastIngestedRunId);
+    if (!latestRun) {
+      console.log("取り込み対象の新規runはありません。終了します。");
+      return;
+    }
 
-  console.log(`run_id=${latestRun.runId} を取り込みます`);
+    console.log(`run_id=${latestRun.runId} を取り込みます`);
 
-  const rows = await fetchScrapedRows(duckDbConfig, latestRun.runId);
-  const groupedCourses = groupScrapedRows(rows);
+    const rows = await fetchScrapedRows(duckDbConfig, latestRun.runId);
+    const groupedCourses = groupScrapedRows(rows);
 
-  const result = await upsertGolfCourses(prisma, groupedCourses);
+    const result = await upsertGolfCourses(prisma, groupedCourses);
 
-  console.log(`成功: ${result.succeeded.length}件, 失敗: ${result.failed.length}件`);
-  for (const failure of result.failed) {
-    console.error(`失敗: matchKey=${failure.matchKey} error=${failure.error}`);
-  }
+    console.log(`成功: ${result.succeeded.length}件, 失敗: ${result.failed.length}件`);
+    for (const failure of result.failed) {
+      console.error(`失敗: matchKey=${failure.matchKey} error=${failure.error}`);
+    }
 
-  await prisma.scrapingIngestState.upsert({
-    where: { id: "singleton" },
-    create: { id: "singleton", lastIngestedRunId: latestRun.runId },
-    update: { lastIngestedRunId: latestRun.runId },
-  });
+    await prisma.scrapingIngestState.upsert({
+      where: { id: "singleton" },
+      create: { id: "singleton", lastIngestedRunId: latestRun.runId },
+      update: { lastIngestedRunId: latestRun.runId },
+    });
 
-  await prisma.$disconnect();
-
-  if (result.failed.length > 0) {
-    process.exitCode = 1;
+    if (result.failed.length > 0) {
+      process.exitCode = 1;
+    }
+  } finally {
+    await prisma.$disconnect();
+    await pool.end();
   }
 }
 
