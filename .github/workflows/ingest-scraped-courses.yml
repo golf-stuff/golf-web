@@ -1,0 +1,27 @@
+name: Ingest scraped golf courses
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # UTC 20:00 = JST 5:00（スクレイピング側の実行時刻より後を想定）
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ingest script
+        run: npx tsx scripts/ingest-scraped-courses.ts
+        env:
+          DIRECT_URL: ${{ secrets.PROD_DIRECT_URL }}
+          SCRAPING_GCS_HMAC_KEY_ID: ${{ secrets.SCRAPING_GCS_HMAC_KEY_ID }}
+          SCRAPING_GCS_HMAC_SECRET: ${{ secrets.SCRAPING_GCS_HMAC_SECRET }}
+          SCRAPING_GCS_BUCKET: ${{ secrets.SCRAPING_GCS_BUCKET }}
