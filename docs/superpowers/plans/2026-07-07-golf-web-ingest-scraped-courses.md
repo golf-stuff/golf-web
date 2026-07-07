@@ -802,3 +802,245 @@ Expected: `findLatestSuccessfulRun`が実データのrun_idを返し、`fetchScr
 - [ ] **Step 5: Commit（Secrets設定内容のドキュメント化が必要な場合のみ）**
 
 設定手順に変更があれば、本Planの本Taskの内容を更新してコミットする。
+
+---
+
+## Task 8: `upsertGolfCourses`をnative upsert化し、コース単位でトランザクション化する
+
+**背景:** Task 3実装後のコードレビューで、`mstGolfCourse`/`mstCourseLayout`の`findFirst`→`create`/`update`分岐が以下の問題を持つと指摘された。
+- `@@unique([name, prefecture, city])`（`MstGolfCourse`）・`@@unique([golfCourseId, name])`（`MstCourseLayout`）が既に存在するにもかかわらずアプリ側で手動分岐しており、TOCTOU競合（2つの実行が同時に`findFirst`でnullを見て両方`create`し、unique制約違反の未捕捉例外になる）のリスクがある
+- コース単位のトランザクションが無いため、18ホール中3ホールでUpsertが失敗した場合、コース行・一部レイアウトは既にcommitされたまま「コース全体が失敗」として記録され、部分的な不整合状態になる
+
+日次cronのみの実行で同時実行はほぼ無いため実害は低いが、Task 7（実データでの初回実行）より前に直しておく。
+
+**Files:**
+- Modify: `src/lib/ingest/upsertGolfCourses.ts`
+- Modify: `src/lib/ingest/__tests__/upsertGolfCourses.test.ts`
+
+**Interfaces:**
+- `upsertGolfCourses(prisma: PrismaClientLike, courses: GroupedCourse[]): Promise<UpsertResult>` のシグネチャは変更しない
+- `PrismaClientLike`に`$transaction<T>(fn: (tx: PrismaClientLike) => Promise<T>) => Promise<T>`を追加する
+
+**設計判断:**
+- `mstGolfCourse.upsert`の`where`には複合ユニークキー`name_prefecture_city`（Prisma既定の複合ユニーク名。`prisma/schema.prisma`の`@@unique([name, prefecture, city])`に明示的な`name`指定が無いため）を使う
+- `mstCourseLayout.upsert`の`where`には同様に`golfCourseId_name`を使う
+- `mstCourseLayout`の`update`データには`holeCount`/`displayOrder`も含める（スクレイピング結果でホール数が変わった場合に追従させるため。既存実装ではレイアウトが見つかった場合は何も更新していなかった不具合も合わせて直す）
+- `upsertOneCourse`全体（コース→レイアウト→ホールの一連の書き込み）を`prisma.$transaction`でラップし、1コース分は全部成功するか全部ロールバックされるかのどちらかにする
+- 1コースの失敗が他コースの処理を止めない、という既存の`upsertGolfCourses`側の挙動（`try/catch`でコースごとに独立）は変更しない
+
+- [ ] **Step 1: 失敗するテストを書く（既存テストの書き換え）**
+
+`src/lib/ingest/__tests__/upsertGolfCourses.test.ts`を以下の内容に書き換える。モックに`$transaction`を追加し、渡されたコールバックに同じモックprismaを渡して即実行する形にする。
+
+```ts
+// src/lib/ingest/__tests__/upsertGolfCourses.test.ts
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { upsertGolfCourses } from "../upsertGolfCourses";
+import type { GroupedCourse } from "../types";
+
+function course(overrides: Partial<GroupedCourse> = {}): GroupedCourse {
+  return {
+    matchKey: "akabanegolfclub|東京都|北区",
+    courseName: "赤羽ゴルフ倶楽部",
+    prefecture: "東京都",
+    city: "北区",
+    layouts: [
+      {
+        name: "OUT",
+        holes: [{ holeNumber: 1, par: 4, yardRegular: 375 }],
+      },
+    ],
+    scrapedAt: "2026-07-07T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function createMockPrisma() {
+  const mock = {
+    mstGolfCourse: {
+      upsert: vi.fn(),
+    },
+    mstCourseLayout: {
+      upsert: vi.fn(),
+    },
+    mstHole: {
+      upsert: vi.fn(),
+    },
+    $transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => fn(mock)),
+  };
+  return mock;
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("upsertGolfCourses", () => {
+  it("mstGolfCourse/mstCourseLayoutをnative upsertで作成・更新する", async () => {
+    const prisma = createMockPrisma();
+    prisma.mstGolfCourse.upsert.mockResolvedValue({ id: "course-1" });
+    prisma.mstCourseLayout.upsert.mockResolvedValue({ id: "layout-1" });
+
+    const result = await upsertGolfCourses(prisma as any, [course()]);
+
+    expect(prisma.mstGolfCourse.upsert).toHaveBeenCalledWith({
+      where: { name_prefecture_city: { name: "赤羽ゴルフ倶楽部", prefecture: "東京都", city: "北区" } },
+      create: { name: "赤羽ゴルフ倶楽部", prefecture: "東京都", city: "北区", lastScrapedAt: new Date("2026-07-07T00:00:00.000Z") },
+      update: { name: "赤羽ゴルフ倶楽部", prefecture: "東京都", city: "北区", lastScrapedAt: new Date("2026-07-07T00:00:00.000Z") },
+    });
+    expect(prisma.mstCourseLayout.upsert).toHaveBeenCalledWith({
+      where: { golfCourseId_name: { golfCourseId: "course-1", name: "OUT" } },
+      create: { golfCourseId: "course-1", name: "OUT", holeCount: 1, displayOrder: 1 },
+      update: { holeCount: 1, displayOrder: 1 },
+    });
+    expect(prisma.mstHole.upsert).toHaveBeenCalledWith({
+      where: { courseLayoutId_holeNumber: { courseLayoutId: "layout-1", holeNumber: 1 } },
+      create: { courseLayoutId: "layout-1", holeNumber: 1, par: 4, yardRegular: 375 },
+      update: { par: 4, yardRegular: 375 },
+    });
+    expect(result.succeeded).toEqual(["akabanegolfclub|東京都|北区"]);
+    expect(result.failed).toEqual([]);
+  });
+
+  it("1コースの処理を$transactionでラップする", async () => {
+    const prisma = createMockPrisma();
+    prisma.mstGolfCourse.upsert.mockResolvedValue({ id: "course-1" });
+    prisma.mstCourseLayout.upsert.mockResolvedValue({ id: "layout-1" });
+
+    await upsertGolfCourses(prisma as any, [course()]);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+  });
+
+  it("1コースのUpsert失敗が他コースの処理を止めず、失敗したコースはロールバックされる", async () => {
+    const prisma = createMockPrisma();
+    prisma.mstGolfCourse.upsert
+      .mockRejectedValueOnce(new Error("DB接続エラー"))
+      .mockResolvedValueOnce({ id: "course-2" });
+    prisma.mstCourseLayout.upsert.mockResolvedValue({ id: "layout-2" });
+
+    const result = await upsertGolfCourses(prisma as any, [
+      course({ matchKey: "course-a" }),
+      course({ matchKey: "course-b", courseName: "別のコース" }),
+    ]);
+
+    expect(result.failed).toEqual([{ matchKey: "course-a", error: "DB接続エラー" }]);
+    expect(result.succeeded).toEqual(["course-b"]);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(2);
+  });
+});
+```
+
+- [ ] **Step 2: テストを実行し、失敗を確認する**
+
+Run: `npx vitest run src/lib/ingest/__tests__/upsertGolfCourses.test.ts`
+Expected: FAIL（`mstGolfCourse.upsert`等が未実装のため）
+
+- [ ] **Step 3: `upsertGolfCourses.ts`を書き換える**
+
+```ts
+// src/lib/ingest/upsertGolfCourses.ts
+import type { GroupedCourse } from "./types";
+
+/** テストでモック注入できるよう、実際に使うPrismaメソッドのみを型で表す */
+export interface PrismaClientLike {
+  mstGolfCourse: {
+    upsert: (args: any) => Promise<{ id: string }>;
+  };
+  mstCourseLayout: {
+    upsert: (args: any) => Promise<{ id: string }>;
+  };
+  mstHole: {
+    upsert: (args: any) => Promise<unknown>;
+  };
+  $transaction: <T>(fn: (tx: PrismaClientLike) => Promise<T>) => Promise<T>;
+}
+
+export interface UpsertResult {
+  succeeded: string[];
+  failed: { matchKey: string; error: string }[];
+}
+
+export async function upsertGolfCourses(
+  prisma: PrismaClientLike,
+  courses: GroupedCourse[]
+): Promise<UpsertResult> {
+  const succeeded: string[] = [];
+  const failed: { matchKey: string; error: string }[] = [];
+
+  for (const course of courses) {
+    try {
+      await prisma.$transaction((tx) => upsertOneCourse(tx, course));
+      succeeded.push(course.matchKey);
+    } catch (e) {
+      failed.push({
+        matchKey: course.matchKey,
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }
+
+  return { succeeded, failed };
+}
+
+async function upsertOneCourse(prisma: PrismaClientLike, course: GroupedCourse) {
+  const courseData = {
+    name: course.courseName,
+    prefecture: course.prefecture,
+    city: course.city,
+    lastScrapedAt: new Date(course.scrapedAt),
+  };
+
+  const golfCourse = await prisma.mstGolfCourse.upsert({
+    where: {
+      name_prefecture_city: { name: course.courseName, prefecture: course.prefecture, city: course.city },
+    },
+    create: courseData,
+    update: courseData,
+  });
+
+  for (let i = 0; i < course.layouts.length; i++) {
+    const layout = course.layouts[i];
+    const layoutData = { holeCount: layout.holes.length, displayOrder: i + 1 };
+
+    const mstLayout = await prisma.mstCourseLayout.upsert({
+      where: { golfCourseId_name: { golfCourseId: golfCourse.id, name: layout.name } },
+      create: { golfCourseId: golfCourse.id, name: layout.name, ...layoutData },
+      update: layoutData,
+    });
+
+    for (const hole of layout.holes) {
+      await prisma.mstHole.upsert({
+        where: {
+          courseLayoutId_holeNumber: { courseLayoutId: mstLayout.id, holeNumber: hole.holeNumber },
+        },
+        create: {
+          courseLayoutId: mstLayout.id,
+          holeNumber: hole.holeNumber,
+          par: hole.par,
+          yardRegular: hole.yardRegular,
+        },
+        update: { par: hole.par, yardRegular: hole.yardRegular },
+      });
+    }
+  }
+}
+```
+
+- [ ] **Step 4: テストを実行し、成功を確認する**
+
+Run: `npx vitest run src/lib/ingest/__tests__/upsertGolfCourses.test.ts`
+Expected: PASS（3件とも成功）
+
+- [ ] **Step 5: `npx tsc --noEmit`を実行し、`scripts/ingest-scraped-courses.ts`から呼び出している箇所（実際の`PrismaClient`が新しい`PrismaClientLike`形状を満たすか）も含めて型エラーが無いことを確認する**
+
+Expected: 型不一致があれば、`scripts/ingest-scraped-courses.ts`側の呼び出し方は変更せず（実PrismaClientは`$transaction`/`upsert`を標準搭載しているため通常は問題ないはず）、`upsertGolfCourses.ts`側の型定義を実際のPrisma生成型に合わせて調整する
+
+- [ ] **Step 6: `npx vitest run`（フルスイート）を実行し、既存テストを含めて全て通ることを確認する**
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/lib/ingest/upsertGolfCourses.ts src/lib/ingest/__tests__/upsertGolfCourses.test.ts
+git commit -m "refactor: upsertGolfCoursesをnative upsert+コース単位トランザクションに変更"
+```
