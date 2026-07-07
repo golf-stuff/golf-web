@@ -107,7 +107,7 @@ model TrnRoundHoleResult {
   fairwayKeep   fairway_keep_result? @map("fairway_keep")
   secondShotOk  Boolean? @map("second_shot_ok")
   greenBunker    Int?          @map("green_bunker")
-  fairwayBunker  Int?          @map("fairway_bunker")  
+  fairwayBunker  Int?          @map("fairway_bunker")
 
   createdAt     DateTime @default(now()) @map("created_at")
 
@@ -116,4 +116,12 @@ model TrnRoundHoleResult {
 
   @@unique([roundId, holeId])
   @@map("trn_round_hole_results")
+}
+
+model ScrapingIngestState {
+  id                String   @id @default("singleton")
+  lastIngestedRunId String?  @map("last_ingested_run_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("scraping_ingest_state")
 }
