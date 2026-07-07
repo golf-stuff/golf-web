@@ -3,18 +3,15 @@ import type { GroupedCourse } from "./types";
 /** テストでモック注入できるよう、実際に使うPrismaメソッドのみを型で表す */
 export interface PrismaClientLike {
   mstGolfCourse: {
-    findFirst: (args: any) => Promise<{ id: string } | null>;
-    create: (args: any) => Promise<{ id: string }>;
-    update: (args: any) => Promise<{ id: string }>;
+    upsert: (args: any) => Promise<{ id: string }>;
   };
   mstCourseLayout: {
-    findFirst: (args: any) => Promise<{ id: string } | null>;
-    create: (args: any) => Promise<{ id: string }>;
-    update: (args: any) => Promise<{ id: string }>;
+    upsert: (args: any) => Promise<{ id: string }>;
   };
   mstHole: {
     upsert: (args: any) => Promise<unknown>;
   };
+  $transaction: <T>(fn: (tx: PrismaClientLike) => Promise<T>) => Promise<T>;
 }
 
 export interface UpsertResult {
@@ -31,7 +28,7 @@ export async function upsertGolfCourses(
 
   for (const course of courses) {
     try {
-      await upsertOneCourse(prisma, course);
+      await prisma.$transaction((tx) => upsertOneCourse(tx, course));
       succeeded.push(course.matchKey);
     } catch (e) {
       failed.push({
@@ -45,10 +42,6 @@ export async function upsertGolfCourses(
 }
 
 async function upsertOneCourse(prisma: PrismaClientLike, course: GroupedCourse) {
-  const existing = await prisma.mstGolfCourse.findFirst({
-    where: { name: course.courseName, prefecture: course.prefecture, city: course.city },
-  });
-
   const courseData = {
     name: course.courseName,
     prefecture: course.prefecture,
@@ -56,31 +49,23 @@ async function upsertOneCourse(prisma: PrismaClientLike, course: GroupedCourse) 
     lastScrapedAt: new Date(course.scrapedAt),
   };
 
-  let golfCourse: { id: string };
-  if (existing) {
-    await prisma.mstGolfCourse.update({ where: { id: existing.id }, data: courseData });
-    golfCourse = existing;
-  } else {
-    golfCourse = await prisma.mstGolfCourse.create({ data: courseData });
-  }
+  const golfCourse = await prisma.mstGolfCourse.upsert({
+    where: {
+      name_prefecture_city: { name: course.courseName, prefecture: course.prefecture, city: course.city },
+    },
+    create: courseData,
+    update: courseData,
+  });
 
   for (let i = 0; i < course.layouts.length; i++) {
     const layout = course.layouts[i];
+    const layoutData = { holeCount: layout.holes.length, displayOrder: i + 1 };
 
-    const existingLayout = await prisma.mstCourseLayout.findFirst({
-      where: { golfCourseId: golfCourse.id, name: layout.name },
+    const mstLayout = await prisma.mstCourseLayout.upsert({
+      where: { golfCourseId_name: { golfCourseId: golfCourse.id, name: layout.name } },
+      create: { golfCourseId: golfCourse.id, name: layout.name, ...layoutData },
+      update: layoutData,
     });
-
-    const mstLayout = existingLayout
-      ? existingLayout
-      : await prisma.mstCourseLayout.create({
-          data: {
-            golfCourseId: golfCourse.id,
-            name: layout.name,
-            holeCount: layout.holes.length,
-            displayOrder: i + 1,
-          },
-        });
 
     for (const hole of layout.holes) {
       await prisma.mstHole.upsert({
