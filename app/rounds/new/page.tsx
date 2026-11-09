@@ -9,8 +9,7 @@ export default async function NewRoundPage() {
   if (!currentUser) redirect("/login");
 
   const golfCourses = await prisma.mstGolfCourse.findMany({
-    where: { userId: currentUser.id },
-    orderBy: { createdAt: "asc" },
+    orderBy: { name: "asc" },
   });
 
   return (

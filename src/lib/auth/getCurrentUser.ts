@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/src/lib/supabase/server'
 export type CurrentUser = {
   id: string
   email: string | null
+  role: 'user' | 'admin'
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -19,12 +20,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   })
 
   if (existing) {
-    return { id: existing.id, email: existing.email }
+    return { id: existing.id, email: existing.email, role: existing.role }
   }
 
   const created = await prisma.mstUser.create({
     data: { id: user.id, email: user.email ?? null },
   })
 
-  return { id: created.id, email: created.email }
+  return { id: created.id, email: created.email, role: created.role }
 }

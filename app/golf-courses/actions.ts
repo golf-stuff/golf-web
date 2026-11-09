@@ -2,26 +2,24 @@
 
 import { prisma } from "@/src/lib/db/prisma";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
+import { requireAdminForAction } from "@/src/lib/auth/requireAdmin";
 
 /**
  * ゴルフ場を新規作成
  */
 export async function createGolfCourse(formData: FormData) {
+  await requireAdminForAction();
+
   const name = formData.get("name") as string;
+  const prefecture = (formData.get("prefecture") as string) || null;
+  const city = (formData.get("city") as string) || null;
 
   if (!name || name.trim() === "") {
     throw new Error("ゴルフ場名は必須です");
   }
 
-  const currentUser = await getCurrentUser();
-  if (!currentUser) throw new Error("ログインが必要です");
-
   await prisma.mstGolfCourse.create({
-    data: {
-      userId: currentUser.id,
-      name,
-    },
+    data: { name, prefecture, city },
   });
 
   redirect("/golf-courses");
@@ -31,8 +29,12 @@ export async function createGolfCourse(formData: FormData) {
  * ゴルフ場を更新
  */
 export async function updateGolfCourse(formData: FormData) {
+  await requireAdminForAction();
+
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
+  const prefecture = (formData.get("prefecture") as string) || null;
+  const city = (formData.get("city") as string) || null;
 
   if (!id) {
     throw new Error("IDが不正です");
@@ -44,7 +46,7 @@ export async function updateGolfCourse(formData: FormData) {
 
   await prisma.mstGolfCourse.update({
     where: { id },
-    data: { name },
+    data: { name, prefecture, city },
   });
 
   redirect("/golf-courses");
@@ -54,6 +56,8 @@ export async function updateGolfCourse(formData: FormData) {
  * コース（OUT / IN など）を追加
  */
 export async function createCourseLayout(formData: FormData) {
+  await requireAdminForAction();
+
   const golfCourseId = formData.get("golfCourseId") as string;
   const name = formData.get("name") as string;
 
@@ -91,6 +95,8 @@ export async function createCourseLayout(formData: FormData) {
  * コース名を更新
  */
 export async function updateCourseLayoutName(formData: FormData) {
+  await requireAdminForAction();
+
   const layoutId = formData.get("layoutId") as string;
   const golfCourseId = formData.get("golfCourseId") as string;
   const name = formData.get("name") as string;
@@ -101,6 +107,14 @@ export async function updateCourseLayoutName(formData: FormData) {
 
   if (!name || name.trim() === "") {
     throw new Error("コース名は必須です");
+  }
+
+  const layout = await prisma.mstCourseLayout.findUnique({
+    where: { id: layoutId },
+  });
+
+  if (!layout || layout.golfCourseId !== golfCourseId) {
+    throw new Error("コースが見つかりません");
   }
 
   await prisma.mstCourseLayout.update({
@@ -153,6 +167,8 @@ function parseHoleInputsJson(json: string): HoleInput[] {
  * Hole定義を保存（既存削除→再作成）
  */
 export async function saveHoles(formData: FormData) {
+  await requireAdminForAction();
+
   const golfCourseId = formData.get("golfCourseId") as string;
   const layoutId = formData.get("layoutId") as string;
   const holesJson = formData.get("holesJson") as string;
@@ -166,7 +182,9 @@ export async function saveHoles(formData: FormData) {
     where: { id: layoutId },
   });
 
-  if (!layout) throw new Error("コースが見つかりません");
+  if (!layout || layout.golfCourseId !== golfCourseId) {
+    throw new Error("コースが見つかりません");
+  }
 
   const holes = parseHoleInputsJson(holesJson);
 

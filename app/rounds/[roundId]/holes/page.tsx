@@ -14,31 +14,9 @@ type Props = {
   }>;
 };
 
-const baseTh: React.CSSProperties = {
-  border: "1px solid #ccc",
-  padding: "6px 8px",
-  fontSize: "0.85rem",
-  whiteSpace: "nowrap",
-};
-
-const baseTd: React.CSSProperties = {
-  border: "1px solid #ddd",
-  padding: "4px 6px",
-  textAlign: "center",
-  fontSize: "0.85rem",
-};
-
-/* グループ別背景色（淡く） */
-const bgCourse = { backgroundColor: "#f5f7fa" };      // グレー
-const bgScore = { backgroundColor: "#f1f8e9" };       // 薄グリーン
-const bgBreakdown = { backgroundColor: "#fffde7" };   // 薄イエロー
-const bgTee = { backgroundColor: "#e3f2fd" };         // 薄ブルー
-const bgHazard = { backgroundColor: "#fdecea" };      // 薄レッド
-
-/* グループ境界（右側を太線） */
-const borderRightStrong = {
-  borderRight: "2px solid #999",
-};
+const thClass = "border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 whitespace-nowrap";
+const tdClass = "border border-gray-200 px-2 py-1 text-center text-xs";
+const groupEnd = "border-r-2 border-r-gray-300"; // グループ区切り（太めの縦罫線）
 
 
 function getFwkeepOptions(par: number): fairway_keep_result[] {
@@ -151,53 +129,54 @@ export default async function RoundHolesPage({ params }: Props) {
           const layoutPenalty = layoutResults.reduce((sum, r) => sum + (r.penalty ?? 0), 0);
 
           return (
-            <section key={layout.id} style={{ marginTop: "1rem" }}>
-              <h2>{layout.name}</h2>
-              <div style={{ marginBottom: "0.5rem", color: "#555" }}>
+            <section key={layout.id} className="mt-4">
+              <h2 className="page-subheading">{layout.name}</h2>
+              <div className="mb-2 text-xs text-gray-400">
                   スコア {layoutScore}
                   {" / "}
                   パット {layoutPutt}
                   {" / "}
                   ペナルティ {layoutPenalty}
                 </div>
-              <table style={{ borderCollapse: "collapse" }}>
+              <div className="overflow-x-auto">
+              <table className="border-collapse">
                 <thead>
                   {/* グループ行 */}
                   <tr>
-                    <th colSpan={3} style={{ ...baseTh, ...bgCourse, ...borderRightStrong }}>コース情報</th>
-                    <th colSpan={3} style={{ ...baseTh, ...bgScore, ...borderRightStrong }}>スコア</th>
-                    <th colSpan={6} style={{ ...baseTh, ...bgBreakdown, ...borderRightStrong }}>スコア分解</th>
-                    <th colSpan={2} style={{ ...baseTh, ...bgTee, ...borderRightStrong }}>ティーショット</th>
-                    <th colSpan={2} style={{ ...baseTh, ...bgHazard }}>ハザード</th>
+                    <th colSpan={3} className={`${thClass} ${groupEnd}`}>コース情報</th>
+                    <th colSpan={3} className={`${thClass} ${groupEnd}`}>スコア</th>
+                    <th colSpan={6} className={`${thClass} ${groupEnd}`}>スコア分解</th>
+                    <th colSpan={2} className={`${thClass} ${groupEnd}`}>ティーショット</th>
+                    <th colSpan={2} className={thClass}>ハザード</th>
                   </tr>
 
                   {/* 項目行 */}
                   <tr>
                     {/* コース情報 */}
-                    <th>Hole</th>
-                    <th>Par</th>
-                    <th>Yard</th>
+                    <th className={thClass}>Hole</th>
+                    <th className={thClass}>Par</th>
+                    <th className={`${thClass} ${groupEnd}`}>Yard</th>
 
                     {/* スコア */}
-                    <th>Result</th>
-                    <th>±Par</th>
-                    <th>Score</th>
+                    <th className={thClass}>Result</th>
+                    <th className={thClass}>±Par</th>
+                    <th className={`${thClass} ${groupEnd}`}>Score</th>
 
                     {/* スコア分解 */}
-                    <th>ShortGame</th>
-                    <th>Approach</th>
-                    <th>Putt</th>
-                    <th>LongGame</th>
-                    <th>LongShot</th>
-                    <th>Penalty</th>
+                    <th className={thClass}>ShortGame</th>
+                    <th className={thClass}>Approach</th>
+                    <th className={thClass}>Putt</th>
+                    <th className={thClass}>LongGame</th>
+                    <th className={thClass}>LongShot</th>
+                    <th className={`${thClass} ${groupEnd}`}>Penalty</th>
 
                     {/* ティーショット */}
-                    <th>FW</th>
-                    <th>2nd</th>
+                    <th className={thClass}>FW</th>
+                    <th className={`${thClass} ${groupEnd}`}>2nd</th>
 
                     {/* ハザード */}
-                    <th>greenBunker</th>
-                    <th>fairwayBunker</th>
+                    <th className={thClass}>greenBunker</th>
+                    <th className={thClass}>fairwayBunker</th>
                   </tr>
                 </thead>
 
@@ -224,15 +203,15 @@ export default async function RoundHolesPage({ params }: Props) {
                     return (
                       <tr key={hole.id}>
                           {/* コース情報 */}
-                          <td>{hole.holeNumber}</td>
-                          <td>{hole.par}</td>
-                          <td>{hole.yardRegular}</td>
+                          <td className={tdClass}>{hole.holeNumber}</td>
+                          <td className={tdClass}>{hole.par}</td>
+                          <td className={`${tdClass} ${groupEnd}`}>{hole.yardRegular}</td>
                           {/* スコア */}
                           {/* ★ ±Par 表示 */}
-                          <td style={{ textAlign: "center", color: scoreLabel.color }}>
+                          <td className={tdClass} style={{ color: scoreLabel.color }}>
                             <strong>{scoreLabel.label}</strong>
                           </td>
-                          <td style={{ textAlign: "center"}}>
+                          <td className={tdClass}>
                             {diff == null
                               ? "-"
                               : diff === 0
@@ -241,9 +220,10 @@ export default async function RoundHolesPage({ params }: Props) {
                               ? `+${diff}`
                               : diff}
                           </td>
-                          <td>
+                          <td className={`${tdClass} ${groupEnd}`}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_score`}
                               min={1}
                               max={99}
@@ -251,29 +231,32 @@ export default async function RoundHolesPage({ params }: Props) {
                           </td>
 
                           {/* スコア分解 */}
-                          <td>
+                          <td className={tdClass}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_shortgame`}
                               min={1}
                               max={99}
                               defaultValue={result?.shortGame ?? ""}
                             />
                           </td>
-                          <td>{metrics?.approach ?? "-"}</td>
-                          <td>
+                          <td className={tdClass}>{metrics?.approach ?? "-"}</td>
+                          <td className={tdClass}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_putt`}
                               min={0}
                               max={99}
                               defaultValue={result?.putt ?? ""} />
                           </td>
-                          <td>{metrics?.longgame ?? "-"}</td>
-                          <td>{metrics?.longshot ?? "-"}</td>
-                          <td>
+                          <td className={tdClass}>{metrics?.longgame ?? "-"}</td>
+                          <td className={tdClass}>{metrics?.longshot ?? "-"}</td>
+                          <td className={`${tdClass} ${groupEnd}`}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_penalty`}
                               min={0}
                               max={99}
@@ -281,8 +264,9 @@ export default async function RoundHolesPage({ params }: Props) {
                           </td>
 
                           {/* ティーショット */}
-                          <td>
+                          <td className={tdClass}>
                             <select
+                              className="table-select"
                               name={`hole_${hole.id}_fairwayKeep`}
                               defaultValue={result?.fairwayKeep ?? ""}
                             >
@@ -297,8 +281,9 @@ export default async function RoundHolesPage({ params }: Props) {
                               ))}
                             </select>
                           </td>
-                          <td>
+                          <td className={`${tdClass} ${groupEnd}`}>
                             <select
+                              className="table-select"
                               name={`hole_${hole.id}_secondShotOk`}
                               defaultValue={
                                 result?.secondShotOk == null
@@ -315,18 +300,20 @@ export default async function RoundHolesPage({ params }: Props) {
                           </td>
 
                           {/* ハザード */}
-                          <td>
+                          <td className={tdClass}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_greenBunker`}
                               min={0}
                               max={99}
                               defaultValue={result?.greenBunker ?? ""}
                             />
                           </td>
-                          <td>
+                          <td className={tdClass}>
                             <input
                               type="number"
+                              className="table-input"
                               name={`hole_${hole.id}_fairwayBunker`}
                               min={0}
                               max={99}
@@ -339,6 +326,7 @@ export default async function RoundHolesPage({ params }: Props) {
                   })}
                 </tbody>
               </table>
+              </div>
             </section>
 
           );

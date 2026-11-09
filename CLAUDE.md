@@ -64,7 +64,7 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 ## 認証
 
 - `middleware.ts` により、`/login` と `/auth/callback` を除く全ページでログインが必須になっています。未ログインでアクセスすると `/login` にリダイレクトされます。
-- ローカル開発でログインを試す場合は、Supabase Studio（`supabase start` 実行後にターミナルへ表示されるURL、デフォルトは `http://127.0.0.1:54323`）を開き、「Authentication」→「Users」からテストユーザーを作成してください。作成したメールアドレス／パスワードで `/login` からログインできます。
+- ローカル開発・develop動作確認でログインを試す場合は、[`.claude/rules/test-users.md`](.claude/rules/test-users.md) に定義された一般ユーザー／管理者ユーザーの2パターンを使用してください。Supabase Studio（`supabase start` 実行後にターミナルへ表示されるURL、デフォルトは `http://127.0.0.1:54323`）の「Authentication」→「Users」またはAdmin APIで作成できます。これ以外のテスト用ユーザーを作成した場合は、確認後に削除し、常にこの2パターンのみが残る状態を保ってください。
 - サーバーサイドでログインユーザーを取得する場合は `src/lib/auth/getCurrentUser.ts` の `getCurrentUser()` を使用します。Supabase Authのユーザー情報を取得し、`MstUser` テーブルに未登録であれば自動的に作成（upsert相当）してから返します。未ログイン時は `null` を返します。
 - Supabaseクライアントの生成は `src/lib/supabase/`（ブラウザ用・サーバー用）に集約されています。新規にSupabaseへアクセスするコードを書く場合はここのクライアントを再利用してください。
 
@@ -75,10 +75,35 @@ supabase start    # 未起動なら起動（初回は時間がかかる）
 - `vercel.json` で `git.deploymentEnabled: false` を設定しています。これはVercelのGit連携による自動デプロイ（pushのたびに実行される標準の仕組み）を無効化するためのものです。無効化しないと、GitHub Actions経由のDeploy Hookによるデプロイと、Vercelの自動デプロイが競合してしまいます（詳細は commit `1a44f67` 参照）。
 - 手動でマイグレーションを本番適用する場合も、`DIRECT_URL`（Pooler経由ではない直接接続）を使う必要がある点に注意してください。
 
+## ブランチ戦略
+
+本番デプロイの頻度を抑えるため、以下のブランチフローで運用します。
+
+```
+main        ← 本番ブランチ（Vercelデプロイ・DBマイグレーションの起点）
+  ↑ PR（手動・任意タイミング）
+develop     ← 開発統合ブランチ（デプロイ・マイグレーションは発生しない）
+  ↑ PR（レビューは任意）
+feature/* または docs/*   ← 個々の作業ブランチ（developから作成）
+```
+
+- 新規作業は `develop` から `feature/*`（実装）または `docs/*`（ドキュメント作業）を切って開発し、`develop` へPRを作成してマージする（レビュー必須ではない）
+- 開発着手前には skill `/brainstorming` を使って検討すること
+- `develop` → `main` のマージは、変更が溜まった段階で開発者が任意のタイミングで判断し、PRを作成する
+- `main` への直接pushは行わない
+- ブランチ作成後、並列作業を行う場合はスキル `/using-git-worktrees` を使ってworktree分離を行う
+  - `.env.local` は `.gitignore` 対象のため新規worktreeには存在しない。ローカルSupabaseは全worktreeで共有する単一インスタンスなので、コピーではなくシンボリックリンクでメインリポジトリの `.env.local` を参照させる：`ln -s <メインリポジトリ絶対パス>/.env.local .env.local`
+- 生成したドキュメントリンクを表示する場合、worktreeを考慮したもの（worktree配下の絶対パス等）にすること
+- `develop` 上の動作確認は各自ローカルの `supabase start` によるSupabaseエミュレータで行う（`develop` 専用のステージングDB・Vercel Preview環境は現時点では用意していない）
+- Claude Code（Web/CLI）が新規セッションで自動生成する作業ブランチも、`main` ではなく `develop` を起点に作成する。セッション開始時点で `main` ベースになっている場合は、作業前に `git fetch origin develop && git checkout -B <ブランチ名> origin/develop` でブランチを作り直してからpushする
+
 ## 計画（plans）に沿った作業
 
 - `docs/superpowers/plans/` 配下の計画ファイルは `- [ ]` 形式のチェックボックスでステップを管理しています（`superpowers:executing-plans` または `superpowers:subagent-driven-development` skillを使う前提）。
 - これらの計画に沿って作業する場合、各ステップを完了するたびに、計画ファイル自体を編集して該当のチェックボックスに `- [x]` を付けてください。作業ログとして計画ファイルが常に最新の進捗を反映するようにするためです。
+- チェックを付ける判断は以下2つを満たす場合のみ行うこと
+  - テストやレビューなど、適切なクロスチェックが実施されている
+  - ユーザーによる確認ができている
 
 ## PRレビューの進め方
 

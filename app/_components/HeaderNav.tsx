@@ -4,13 +4,18 @@ import { usePathname } from 'next/navigation'
 import { signOut } from '@/app/login/actions'
 
 const NAV_LINKS = [
-  { href: '/', label: 'ダッシュボード' },
-  { href: '/rounds', label: 'ラウンド' },
-  { href: '/golf-courses', label: 'ゴルフ場' },
+  { href: '/', label: 'ダッシュボード', adminOnly: false },
+  { href: '/rounds', label: 'ラウンド', adminOnly: false },
+  { href: '/golf-courses', label: 'ゴルフ場', adminOnly: true },
 ]
 
-export default function HeaderNav() {
+type Props = {
+  role: 'user' | 'admin' | null
+}
+
+export default function HeaderNav({ role }: Props) {
   const pathname = usePathname()
+  const navLinks = NAV_LINKS.filter(link => !link.adminOnly || role === 'admin')
 
   return (
     <header className="flex items-stretch h-[50px] pl-6 bg-white border-b border-gray-200">
@@ -18,7 +23,7 @@ export default function HeaderNav() {
         Golf Stuff
       </div>
       <nav className="flex items-stretch">
-        {NAV_LINKS.map(({ href, label }) => {
+        {navLinks.map(({ href, label }) => {
           const isActive =
             href === '/' ? pathname === '/' : pathname.startsWith(href)
           return (

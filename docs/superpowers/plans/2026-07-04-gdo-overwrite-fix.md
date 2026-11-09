@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-07-03-gdo-overwrite-fix-design.md`
 
+> **注記（2026-07-05追記）**: 本プランは docs/superpowers/plans/2026-06-30-pr-b-import-expansion.md（18H対応）と同じ3ファイルを対象としていたため、両プランを統合した docs/superpowers/plans/2026-07-04-gdo-import-merged.md として実装・完了しました（コミット `64c5d34`, `5396367`, `cabfe6f`）。上書き時に手動入力項目を温存する設計（ホールごとの`upsert`）はこのプランの方針が採用されていますが、実装は統合プランのタスク構成・コミットの下で行われたため、以下のチェックボックスは本プラン単体の記述通りには実行されていません。チェックは付けません。
+
 ## Global Constraints
 
 - 上書き時、`stroke` と `putt` のみ更新する。`shortGame` / `fairwayKeep` / `secondShotOk` / `greenBunker` / `fairwayBunker` / `penalty` など、GDOインポートに含まれない手動入力項目は上書きしない（既存値を温存する）

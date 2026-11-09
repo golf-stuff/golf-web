@@ -1,21 +1,18 @@
 import Link from 'next/link'
-import { redirect } from "next/navigation";
 import { prisma } from "@/src/lib/db/prisma";
-import { getCurrentUser } from "@/src/lib/auth/getCurrentUser";
+import { requireAdminForPage } from "@/src/lib/auth/requireAdmin";
 
 export default async function GolfCourseListPage() {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) redirect("/login");
+  await requireAdminForPage();
 
   const courses = await prisma.mstGolfCourse.findMany({
-    where: { userId: currentUser.id },
     orderBy: { createdAt: "desc" },
   });
 
   return (
     <main className="p-6 max-w-2xl mx-auto flex flex-col gap-4">
       <div className="flex justify-between items-center">
-        <h1 className="page-heading">ゴルフ場</h1>
+        <h1 className="page-heading">ゴルフ場（管理者用）</h1>
         <Link href="/golf-courses/new" className="btn-primary">
           ＋ 新規作成
         </Link>

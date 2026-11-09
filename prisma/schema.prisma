@@ -14,31 +14,35 @@ enum fairway_keep_result {
   short
 }
 
+enum user_role {
+  user
+  admin
+}
 
 model MstUser {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   email     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role      user_role @default(user)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
-  golfCourses MstGolfCourse[]
-  rounds      TrnRound[]
+  rounds TrnRound[]
 
   @@map("mst_users")
 }
 
 model MstGolfCourse {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  name       String
+  prefecture String?
+  city       String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  user    MstUser          @relation(fields: [userId], references: [id])
   layouts MstCourseLayout[]
   rounds  TrnRound[]
 
-  @@unique([userId, name])
+  @@unique([name, prefecture, city])
   @@map("mst_golf_courses")
 }
 

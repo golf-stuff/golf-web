@@ -39,6 +39,17 @@ export async function saveRoundHoles(formData: FormData) {
     throw new Error("Round IDが不正です");
   }
 
+  const currentUser = await getCurrentUser();
+  if (!currentUser) throw new Error("ログインが必要です");
+
+  const round = await prisma.trnRound.findUnique({
+    where: { id: roundId },
+  });
+
+  if (!round || round.userId !== currentUser.id) {
+    throw new Error("このラウンドを編集する権限がありません");
+  }
+
   // holeId -> 入力値を集約
   const holeMap = new Map<
     string,
